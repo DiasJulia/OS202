@@ -68,20 +68,13 @@ int main(int nargs, char* argv[])
     bool cont_loop = true;
     bool not_food_in_nest = true;
     std::size_t it = 0;
-    auto start = std::chrono::high_resolution_clock::now();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     while (cont_loop) {
         ++it;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 cont_loop = false;
         }
-        start = std::chrono::high_resolution_clock::now();
         advance_time( land, phen, pos_nest, pos_food, ants, food_quantity );
-        // Contar o tempo gasto para cada iteração
-        end = std::chrono::high_resolution_clock::now();
-        duration += std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         
         renderer.display( win, food_quantity );
         win.blit();
@@ -91,7 +84,6 @@ int main(int nargs, char* argv[])
         }
         //SDL_Delay(10);
     }
-    std::cout << "Average time per iteration: " << duration / it << " ms" << std::endl;
     SDL_Quit();
     return 0;
 }

@@ -1,0 +1,11 @@
+**/rapport.aux*
+**/rapport.log*
+**/rapport.out*
+**/rapport.pdf*
+**/rapport.fdb_latexmk*
+**/rapport.fls*
+**/rapport.toc*
+**/rapport.synctex.gz
+
+**/*.o
+**/*.out
