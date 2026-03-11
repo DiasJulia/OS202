@@ -64,7 +64,9 @@ Nous mesurons séparément les temps d'exécution des trois phases principales :
 \label{sec:baseline}
 
 \subsection{Profiling Temporel (gprof)}
-[Explicar aqui que o profiling foi feito usando gprof, as modificações feitas no makefile e a configuração de compilação adequada para obter os dados de tempo e chamadas de função.]
+Le profiling a été obtenu avec \texttt{gprof} en compilant avec l'option \texttt{PROFILE=yes}
+dans le Makefile (ajout du drapeau \texttt{-pg} à la compilation et à l'édition de liens),
+puis en exécutant \texttt{make PROFILE=yes profile} pour produire \texttt{profile.txt}.
 Le profiling a été réalisé avec \texttt{gprof} (compilation \texttt{PROFILE=yes}) sur une session
 de \textbf{4\,189 itérations}, 5\,000 fourmis, carte $512\times512$.
 Chaque fourmi effectue en moyenne 1 appel à \texttt{ant::advance} par itération, soit \textbf{20\,945\,000 appels} au total.
@@ -119,17 +121,52 @@ Au lieu de maintenir un objet par fourmi, nous utilisons des vecteurs parallèle
 \subsection{Gains de Performance}
 \begin{table}[H]
     \centering
-    \caption{Comparaison baseline vs vectorisée}
-    \begin{tabular}{lcc}
+    \caption{Comparaison baseline vs vectorisée (métriques par itération)}
+    \begin{tabular}{lccc}
         \toprule
-        \textbf{Phase} & \textbf{Baseline (ms)} & \textbf{Vectorisée (ms)} \\
+        \textbf{Phase} & \textbf{Baseline (ms)} & \textbf{Vectorisée (ms)} & \textbf{Gain} \\
         \midrule
-        Avancement fourmis & -- & -- \\
-        Évaporation phéromones & -- & -- \\
-        \textbf{Speedup} & -- & -- \\
+        Noyau simulation (hors rendu) & 3,62 & 3,31 & 1,09$\times$ \\
+        Rendu (\texttt{Renderer::display}) & 1,53 & 1,44 & 1,06$\times$ \\
+        Temps total par itération & 5,23 & 4,84 & \textbf{1,08$\times$} \\
         \bottomrule
     \end{tabular}
 \end{table}
+
+\subsection{Profiling de la version vectorisée (gprof)}
+Sur la version vectorisée (mode par défaut), le profiling donne un temps total de
+\textbf{20,95~s} pour \textbf{4\,324 itérations}, soit \textbf{4,84~ms/itération}.
+
+\begin{table}[H]
+    \centering
+    \caption{Flat profile gprof --- version vectorisée (temps total : 20,95~s)}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Fonction} & \textbf{Temps (s)} & \textbf{\%} & \textbf{Appels} & \textbf{ms/appel} \\
+        \midrule
+        \texttt{advance\_time\_vectorized} & 14,31 & 68,31 & 4\,324 & 3,31 \\
+        \texttt{Renderer::display}          &  6,24 & 29,79 & 4\,324 & 1,44 \\
+        \texttt{fractal\_land::compute\_subgrid} & 0,02 & 0,10 & 87\,376 & 0,00 \\
+        Autre (\texttt{\_init}, \texttt{main}, ...) & 0,38 & 1,80 & -- & -- \\
+        \midrule
+        \textbf{Total} & \textbf{20,95} & \textbf{100\%} & & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Analyse de l'impact de la vectorisation}
+La vectorisation apporte un \textbf{gain global modéré} : le temps moyen par itération passe de
+5,23~ms à 4,84~ms (\textbf{+8\%}, soit 1,08$\times$).
+\begin{itemize}
+    \item Le \textbf{noyau de simulation} (déplacement + mise à jour des phéromones) passe de 3,62~ms/itération
+          à 3,31~ms/itération, soit \textbf{1,09$\times$}.
+    \item Le \textbf{rendu} baisse légèrement de 1,53~ms à 1,44~ms par itération (\textbf{1,06$\times$}),
+          mais reste proche de 30\% du temps total.
+    \item Après vectorisation, \texttt{advance\_time\_vectorized} concentre 68,31\% du temps :
+          c'est la cible prioritaire pour OpenMP/SIMD.
+    \item Le gain reste limité par la part non négligeable du rendu graphique et par le fait que
+          la synchronisation avec les structures orientées objet est encore présente.
+\end{itemize}
 
 \section{Parallélisation OpenMP}
 \label{sec:openmp}
