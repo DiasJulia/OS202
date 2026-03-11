@@ -5,10 +5,17 @@ include Make_linux.inc
 CXXFLAGS = -std=c++17
 ifdef DEBUG
 CXXFLAGS += -g -O0 -Wall -fbounds-check -pedantic -D_GLIBCXX_DEBUG
-CXXFLAGS2 = CXXFLAGS
+CXXFLAGS2 = $(CXXFLAGS)
 else
 CXXFLAGS2 = ${CXXFLAGS} -O2 -march=native -Wall 
 CXXFLAGS += -O3 -march=native -Wall
+endif
+
+ifdef PROFILE
+PROF_FLAGS = -pg -g -fno-omit-frame-pointer
+CXXFLAGS += $(PROF_FLAGS)
+CXXFLAGS2 += $(PROF_FLAGS)
+LDFLAGS += -pg
 endif
 
 ALL= ant_simu.exe 
@@ -18,18 +25,27 @@ default:	help
 all: $(ALL)
 
 clean:
-	@rm -fr *.o *.exe *~
+	@rm -fr *.o *.exe *~ gmon.out profile.txt
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS2) -c $^ -o $@	
 
 ant_simu.exe : ant.o fractal_land.o renderer.o window.o ant_simu.o
-	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB)	
+	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)	
+
+profile: clean all
+	@rm -f gmon.out profile.txt
+	@echo "Running profiling session (close the SDL window to finish)..."
+	@./ant_simu.exe
+	@gprof ./ant_simu.exe gmon.out > profile.txt
+	@echo "gprof report generated: profile.txt"
 
 help:
 	@echo "Available targets : "
 	@echo "    all            : compile all executables"
+	@echo "    profile        : run gprof profiling and write profile.txt"
 	@echo "Add DEBUG=yes to compile in debug"
+	@echo "Add PROFILE=yes to compile with gprof instrumentation"
 	@echo "Configuration :"
 	@echo "    CXX      :    $(CXX)"
 	@echo "    CXXFLAGS :    $(CXXFLAGS)"
