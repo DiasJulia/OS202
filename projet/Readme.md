@@ -37,23 +37,30 @@ Décrivons la dynamique du modèle. Au départ :
 - Toutes les fourmis sont non chargées;
 - les phéromones sont tous mis à zéro sur la grille.
 
-\'A chaque pas de temps, une fourmi fait deux choses :
+À chaque pas de temps, une fourmi fait deux choses :
 
 1. Elle met à jour les taux de phéronomes $V_{1}(s)$ et $V_{2}(s)$ de la cellule sur   laquelle elle se trouve en utilisant celles des quatre cellules voisines ( on note $N(s)$ les voisins de $s$ ). La mise à jour des taux de phéronomes requiert uniquement la connaissance du maximum et de la moyenne des cellules voisines : $\max_{i}\left(N(s)\right) \equiv \max_{s'\in N(s)}V_{i}(s')$ et $avg_{i}\left(N(s)\right)\equiv\frac{1}{4} \sum_{s'\in N(s)} V_{i}(s')$ où l'indice $i\in\left\{1,2\right\}$ indique le type de phéronome considéré.  Précisément, la mise à jour des phéronomes se fait selon les calculs suivants :
-   $$
+
+
+   $
 V_{1}(s) \rightarrow \left\{\begin{array}{ll}
  1 & \text{si la source de nourriture est en }s \\
  \alpha \max_{1}(N(s)) + (1-\alpha)avg_{1}(s) & \text{sinon}
  \end{array}\right.
-   $$
+   $
+
    et
-   $$
+
+   $
 V_{2}(s) \rightarrow \left\{\begin{array}{ll} 
  1 & \text{si la fourmilière est en }s \\
  \alpha \max_{2}(N(s)) + (1-\alpha)avg_{2}(s) & \text{sinon}
  \end{array}\right.
-   $$
+   $
+
    où $0\leq \alpha \leq 1$ 
+
+
 2. Elle avance sur une de ses cellules voisines si elle n'a pas la valeur -1 :
     - avec une probabilité $\varepsilon$ ($0 \leq \varepsilon \leq 1$) qu'on appelera *taux d'exploration*, elle avancera sur une cellule voisine choisie aléatoirement parmi ses quatre voisines;
     - avec une probabilité $1-\varepsilon$, elle avancera sur la cellule ayant le taux de $V_{1}(s)$ le plus grand si elle n'est pas chargée, et sur la cellule ayant le taux de $V_{2}(s)$ le plus grand si elle est chargée.
@@ -65,7 +72,7 @@ qui traduit la difficulté plus ou moins grande de traverser une zone ). Sur la 
 À chaque pas de temps, les phéronomes posés par les fourmis s'évaporent suivant un cœfficient d'évaporation $\beta$ :
 $V_{i}(s) \rightarrow \beta V_{i}(s)$. La valeur $\beta$ prend typiquement une valeur proche de un. 
 
-Ainsi, pour l'instanciation du modèle, les paramêtres suivants doivent être précisisés :
+Ainsi, pour l'instanciation du modèle, les paramêtres suivants doivent être précisisés:
 
 - **l'environnement** : c'est l'ensemble des cellules avec leur unité de temps, leur type ( libre, indésirable, fourmilière ou nourriture )
 - **Le nombre de fourmis** $m$
