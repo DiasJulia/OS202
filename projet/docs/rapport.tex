@@ -1,0 +1,242 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[french]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    tabsize=2
+}
+
+\title{Optimisation par Colonie de Fourmis sur un Paysage Fractal \\
+\large Vectorisation et Parallélisation}
+\author{Votre Nom}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Introduction}
+\label{sec:intro}
+Ce rapport présente l'optimisation progressive d'un simulateur d'algorithme de colonie de fourmis (ACO) 
+appliqué à la recherche de chemins optimaux sur un terrain fractal. Nous détaillons les étapes de 
+vectorisation et parallélisation du code.
+
+\section{Méthodologie}
+\label{sec:method}
+
+\subsection{Environnement et Benchmark}
+Pour garantir une comparaison équitable entre les versions, nous utilisons un scénario fixe :
+\begin{itemize}
+    \item Graine pseudo-aléatoire : \texttt{2026}
+    \item Taille de la carte : $512 \times 512$ cellules (\texttt{fractal\_land(8, 2, 1.0, 1024)})
+    \item Nombre de fourmis : $m = 5000$
+    \item Paramètre de bruit : $\alpha = 0{,}7$
+    \item Coefficient d'évaporation : $\beta = 0{,}999$
+    \item Taux d'exploration : $\varepsilon = 0{,}8$
+    \item Position du nid : $(256, 256)$ ; source de nourriture : $(500, 500)$
+\end{itemize}
+
+\subsection{Instrumentalisation}
+Nous mesurons séparément les temps d'exécution des trois phases principales :
+\begin{enumerate}
+    \item \textbf{Avancement des fourmis} : déplacement et mise à jour de positions
+    \item \textbf{Évaporation et mise à jour de phéromones}
+    \item \textbf{Rendu graphique} (si applicable)
+\end{enumerate}
+
+\section{Résultats Baseline}
+\label{sec:baseline}
+
+\subsection{Profiling Temporel (gprof)}
+[Explicar aqui que o profiling foi feito usando gprof, as modificações feitas no makefile e a configuração de compilação adequada para obter os dados de tempo e chamadas de função.]
+Le profiling a été réalisé avec \texttt{gprof} (compilation \texttt{PROFILE=yes}) sur une session
+de \textbf{4\,189 itérations}, 5\,000 fourmis, carte $512\times512$.
+Chaque fourmi effectue en moyenne 1 appel à \texttt{ant::advance} par itération, soit \textbf{20\,945\,000 appels} au total.
+
+\begin{table}[H]
+    \centering
+    \caption{Flat profile gprof --- version originale (temps total : 21,91~s)}
+    \begin{tabular}{lrrrr}
+        \toprule
+        \textbf{Fonction} & \textbf{Temps (s)} & \textbf{\%} & \textbf{Appels} & \textbf{ms/appel} \\
+        \midrule
+        \texttt{ant::advance}       & 12,04 & 54,95 & 20\,945\,000 & 0,00057 \\
+        \texttt{Renderer::display}  &  6,43 & 29,35 &      4\,189  & 1,53    \\
+        \texttt{advance\_time} (self) &  3,14 & 14,33 &      4\,189  & 0,75    \\
+        \texttt{fractal\_land::compute\_subgrid} & 0,02 & 0,09 & 87\,376 & 0,00 \\
+        Autre (\texttt{\_init}, \texttt{main}, ...) & 0,28 & 1,28 & -- & -- \\
+        \midrule
+        \textbf{Total} & \textbf{21,91} & \textbf{100\%} & & \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Analyse des Goulots d'Étranglement Baseline}
+La décomposition du temps par itération (\textasciitilde{}5,23~ms/itération en moyenne) révèle :
+\begin{itemize}
+    \item \textbf{Avancement des fourmis (\texttt{ant::advance}) : 54,95\%} ---
+          goulot principal. Chaque appel individuel est très court (0,57~µs), mais
+          $5\,000$ appels par itération s'accumulent à \textbf{2,87~ms/itération}.
+    \item \textbf{Rendu graphique (\texttt{Renderer::display}) : 29,35\%} ---
+          second goulot, non parallelisable directement.
+          Représente \textbf{1,53~ms/itération}.
+    \item \textbf{Évaporation / mise à jour de phéromones (\texttt{advance\_time} self) : 14,33\%} ---
+          overhead du balayage de la grille et de l'évaporation, \textbf{0,75~ms/itération}.
+    \item La génération du terrain fractal (\texttt{fractal\_land}) est négligeable (0,09\%).
+\end{itemize}
+
+\textbf{Conclusion baseline :} l'effort de parallélisation doit cibler en priorité
+\texttt{ant::advance} (55\%) et secondairement le rendu (29\%) ou l'évaporation (14\%).
+
+\section{Vectorisation (SoA)}
+\label{sec:vectorization}
+
+\subsection{Approche Structure of Arrays}
+Au lieu de maintenir un objet par fourmi, nous utilisons des vecteurs parallèles :
+\begin{itemize}
+    \item \texttt{pos\_x[], pos\_y[]} : positions
+    \item \texttt{state[]} : états (chargée/non chargée)
+    \item \texttt{seed[]} : graines PRNG
+    \item \texttt{energy[]} : énergie de mouvement
+\end{itemize}
+
+\subsection{Gains de Performance}
+\begin{table}[H]
+    \centering
+    \caption{Comparaison baseline vs vectorisée}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Phase} & \textbf{Baseline (ms)} & \textbf{Vectorisée (ms)} \\
+        \midrule
+        Avancement fourmis & -- & -- \\
+        Évaporation phéromones & -- & -- \\
+        \textbf{Speedup} & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Parallélisation OpenMP}
+\label{sec:openmp}
+
+\subsection{Stratégie de Parallélisation}
+Les boucles parallélisées :
+\begin{lstlisting}
+#pragma omp parallel for collapse(2)
+for (int i = 0; i < num_ants; ++i) {
+}
+
+#pragma omp parallel for collapse(2)
+for (int x = 0; x < width; ++x) {
+    for (int y = 0; y < height; ++y) {
+    }
+}
+\end{lstlisting}
+
+\subsection{Accélération en fonction du nombre de threads}
+\begin{table}[H]
+    \centering
+    \caption{Speedup OpenMP : $S_p = T_1 / T_p$}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Threads} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} & \ldots \\
+        \midrule
+        \textbf{Temps (ms)} & -- & -- & -- & -- & -- \\
+        \textbf{Speedup} & 1.0 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \caption{Speedup OpenMP en fonction du nombre de threads}
+    \label{fig:speedup_omp}
+\end{figure}
+
+\section{Parallélisation MPI}
+\label{sec:mpi}
+
+\subsection{Stratégie 1 : Réplication du Domaine}
+\begin{itemize}
+    \item Chaque processus maintient l'environnement complet
+    \item Sous-ensemble de fourmis géré par processus
+    \item Synchronisation de phéromones (max par cellule)
+    \item Coût de communication élevé
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Stratégie 1 : Speedup vs nombre de processus}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Processus} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} & \ldots \\
+        \midrule
+        \textbf{Temps (s)} & -- & -- & -- & -- & -- \\
+        \textbf{Speedup} & 1.0 & -- & -- & -- & -- \\
+        \textbf{Commun. (\%)} & 0 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Stratégie 2 : Décomposition de Domaine}
+\begin{itemize}
+    \item Chaque processus maintient un sous-domaine
+    \item Gestion locale des fourmis
+    \item Échange de bordures entre processus voisins
+    \item Faible coût de communication
+    \item Équilibre de charge potentiellement mauvais
+\end{itemize}
+
+\textbf{Pseudo-algorithme :}
+\begin{enumerate}
+    \item Partitionner la carte en sous-domaines $(p = \sqrt{n\_procs})$
+    \item Échanger les fourmis migrantes sur les bordures
+    \item Mettre à jour la couche de bordure depuis les voisins
+    \item Évoluer les fourmis localement
+    \item Mettre à jour phéromones localement
+\end{enumerate}
+
+\begin{table}[H]
+    \centering
+    \caption{Stratégie 2 : Speedup vs nombre de processus}
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Processus} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} & \ldots \\
+        \midrule
+        \textbf{Temps (s)} & -- & -- & -- & -- & -- \\
+        \textbf{Speedup} & 1.0 & -- & -- & -- & -- \\
+        \textbf{Commun. (\%)} & 0 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Analyse des Goulots d'Étranglement}
+\label{sec:bottlenecks}
+
+\begin{itemize}
+    \item[$\circ$] \textbf{Mémoire} : accès non-séquentiel à la grille
+    \item[$\circ$] \textbf{Communication MPI} : synchronisation des phéromones
+    \item[$\circ$] \textbf{Équilibre de charge} : répartition hétérogène des fourmis
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+\textit{À développer avec résultats finaux.}
+
+\end{document}
