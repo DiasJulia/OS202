@@ -68,6 +68,8 @@ int main(int nargs, char* argv[])
     bool cont_loop = true;
     bool not_food_in_nest = true;
     std::size_t it = 0;
+    const std::size_t max_time = 100;
+    auto start = std::chrono::high_resolution_clock::now();
     while (cont_loop) {
         ++it;
         while (SDL_PollEvent(&event)) {
@@ -81,6 +83,11 @@ int main(int nargs, char* argv[])
         if ( not_food_in_nest && food_quantity > 0 ) {
             std::cout << "La première nourriture est arrivée au nid a l'iteration " << it << std::endl;
             not_food_in_nest = false;
+        }
+        
+        if ( std::chrono::high_resolution_clock::now() - start > std::chrono::seconds(max_time) ) {
+            std::cout << "Temps maximum de simulation atteint (" << max_time << " secondes)." << std::endl;
+            cont_loop = false;
         }
         //SDL_Delay(10);
     }
