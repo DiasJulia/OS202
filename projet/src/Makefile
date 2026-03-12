@@ -35,9 +35,10 @@ ant_simu.exe : ant.o fractal_land.o renderer.o window.o ant_simu.o
 
 profile: clean all
 	@rm -f gmon.out profile.txt
-	@echo "Running profiling session (close the SDL window to finish)..."
+	@echo "Running profiling session..."
 	@./ant_simu.exe
-	@gprof ./ant_simu.exe gmon.out > profile.txt
+	@gprof ./ant_simu.exe --benchmark gmon.out > profile_vectorized.txt
+	@gprof ./ant_simu.exe --benchmark--oop gmon.out >> profile_oop.txt
 	@echo "gprof report generated: profile.txt"
 
 help:
