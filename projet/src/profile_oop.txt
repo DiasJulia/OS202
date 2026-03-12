@@ -2,26 +2,26 @@ Flat profile:
 
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
- time   seconds   seconds    calls  ms/call  ms/call  name    
- 56.68      8.49     8.49 25005000     0.00     0.00  ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&)
- 27.77     12.65     4.16     5001     0.83     0.83  Renderer::display(Window&, unsigned long const&)
- 13.35     14.65     2.00     5001     0.40     2.10  advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&)
-  2.07     14.96     0.31                             _init
-  0.07     14.97     0.01    87376     0.00     0.00  fractal_land::compute_subgrid(int, int, int, double, unsigned long)
-  0.07     14.98     0.01                             main
-  0.00     14.98     0.00       14     0.00     0.00  void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
-  0.00     14.98     0.00        4     0.00     0.00  Window::~Window()
-  0.00     14.98     0.00        2     0.00     0.00  std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
-  0.00     14.98     0.00        2     0.00     0.00  std::vector<int, std::allocator<int> >::~vector()
-  0.00     14.98     0.00        1     0.00    10.00  fractal_land::fractal_land(unsigned long const&, unsigned long, double, int)
-  0.00     14.98     0.00        1     0.00     0.00  Window::Window(char const*, int, int)
-  0.00     14.98     0.00        1     0.00     0.00  Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&)
-  0.00     14.98     0.00        1     0.00     0.00  Renderer::~Renderer()
-  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::reserve(unsigned long)
-  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::~vector()
-  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant::state, std::allocator<ant::state> >::~vector()
-  0.00     14.98     0.00        1     0.00     0.00  std::vector<double, std::allocator<double> >::~vector()
-  0.00     14.98     0.00        1     0.00     0.00  std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 68.63     19.34    19.34  9811765     0.00     0.00  ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&)
+ 18.99     24.69     5.35     5001     0.00     0.00  Renderer::display(Window&, unsigned long const&)
+ 11.18     27.84     3.15     5001     0.00     0.00  advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&)
+  0.67     28.03     0.19                             _init
+  0.50     28.17     0.14        8     0.02     2.44  Window::~Window()
+  0.04     28.18     0.01                             main
+  0.00     28.18     0.00    87376     0.00     0.00  fractal_land::compute_subgrid(int, int, int, double, unsigned long)
+  0.00     28.18     0.00       14     0.00     0.00  void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
+  0.00     28.18     0.00        2     0.00     0.00  std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
+  0.00     28.18     0.00        2     0.00     0.00  std::vector<int, std::allocator<int> >::~vector()
+  0.00     28.18     0.00        1     0.00     0.00  fractal_land::fractal_land(unsigned long const&, unsigned long, double, int)
+  0.00     28.18     0.00        1     0.00     0.00  Window::Window(char const*, int, int)
+  0.00     28.18     0.00        1     0.00     0.00  Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&)
+  0.00     28.18     0.00        1     0.00     0.00  Renderer::~Renderer()
+  0.00     28.18     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::reserve(unsigned long)
+  0.00     28.18     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::~vector()
+  0.00     28.18     0.00        1     0.00     0.00  std::vector<ant::state, std::allocator<ant::state> >::~vector()
+  0.00     28.18     0.00        1     0.00     0.00  std::vector<double, std::allocator<double> >::~vector()
+  0.00     28.18     0.00        1     0.00     0.00  std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -59,58 +59,58 @@ notice and this notice are preserved.
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 4 byte(s) for 0.07% of 14.98 seconds
+granularity: each sample hit covers 4 byte(s) for 0.04% of 28.18 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]     97.9    0.01   14.66                 main [1]
-                2.00    8.49    5001/5001        advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
-                4.16    0.00    5001/5001        Renderer::display(Window&, unsigned long const&) [4]
-                0.00    0.01       1/1           fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
-                0.00    0.00       4/4           Window::~Window() [15]
-                0.00    0.00       2/2           std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [16]
-                0.00    0.00       2/2           std::vector<int, std::allocator<int> >::~vector() [17]
+[1]     99.3    0.01   27.98                 main [1]
+                0.14   19.34       8/8           Window::~Window() [2]
+                5.35    0.00    5001/5001        Renderer::display(Window&, unsigned long const&) [4]
+                3.15    0.00    5001/5001        advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [5]
+                0.00    0.00       2/2           std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [15]
+                0.00    0.00       2/2           std::vector<int, std::allocator<int> >::~vector() [16]
+                0.00    0.00       1/1           fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [17]
                 0.00    0.00       1/1           std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [21]
                 0.00    0.00       1/1           Window::Window(char const*, int, int) [18]
                 0.00    0.00       1/1           Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [19]
                 0.00    0.00       1/1           Renderer::~Renderer() [20]
-                0.00    0.00       1/1           std::vector<ant::state, std::allocator<ant::state> >::~vector() [23]
                 0.00    0.00       1/1           std::vector<unsigned long, std::allocator<unsigned long> >::~vector() [25]
-                0.00    0.00       1/1           std::vector<double, std::allocator<double> >::~vector() [24]
+                0.00    0.00       1/1           std::vector<ant::state, std::allocator<ant::state> >::~vector() [23]
                 0.00    0.00       1/1           std::vector<ant, std::allocator<ant> >::~vector() [22]
+                0.00    0.00       1/1           std::vector<double, std::allocator<double> >::~vector() [24]
 -----------------------------------------------
-                2.00    8.49    5001/5001        main [1]
-[2]     70.0    2.00    8.49    5001         advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
-                8.49    0.00 25005000/25005000     ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
+                0.14   19.34       8/8           main [1]
+[2]     69.1    0.14   19.34       8         Window::~Window() [2]
+               19.34    0.00 9811765/9811765     ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
 -----------------------------------------------
-                8.49    0.00 25005000/25005000     advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
-[3]     56.7    8.49    0.00 25005000         ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
+               19.34    0.00 9811765/9811765     Window::~Window() [2]
+[3]     68.6   19.34    0.00 9811765         ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
 -----------------------------------------------
-                4.16    0.00    5001/5001        main [1]
-[4]     27.8    4.16    0.00    5001         Renderer::display(Window&, unsigned long const&) [4]
+                5.35    0.00    5001/5001        main [1]
+[4]     19.0    5.35    0.00    5001         Renderer::display(Window&, unsigned long const&) [4]
                 0.00    0.00      14/14          void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&) [14]
 -----------------------------------------------
+                3.15    0.00    5001/5001        main [1]
+[5]     11.2    3.15    0.00    5001         advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [5]
+-----------------------------------------------
                                                  <spontaneous>
-[5]      2.1    0.31    0.00                 _init [5]
+[6]      0.7    0.19    0.00                 _init [6]
 -----------------------------------------------
-                0.01    0.00   87376/87376       fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
-[6]      0.1    0.01    0.00   87376         fractal_land::compute_subgrid(int, int, int, double, unsigned long) [6]
------------------------------------------------
-                0.00    0.01       1/1           main [1]
-[7]      0.1    0.00    0.01       1         fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
-                0.01    0.00   87376/87376       fractal_land::compute_subgrid(int, int, int, double, unsigned long) [6]
+                0.00    0.00   87376/87376       fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [17]
+[13]     0.0    0.00    0.00   87376         fractal_land::compute_subgrid(int, int, int, double, unsigned long) [13]
 -----------------------------------------------
                 0.00    0.00      14/14          Renderer::display(Window&, unsigned long const&) [4]
 [14]     0.0    0.00    0.00      14         void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&) [14]
 -----------------------------------------------
-                0.00    0.00       4/4           main [1]
-[15]     0.0    0.00    0.00       4         Window::~Window() [15]
+                0.00    0.00       2/2           main [1]
+[15]     0.0    0.00    0.00       2         std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [15]
 -----------------------------------------------
                 0.00    0.00       2/2           main [1]
-[16]     0.0    0.00    0.00       2         std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [16]
+[16]     0.0    0.00    0.00       2         std::vector<int, std::allocator<int> >::~vector() [16]
 -----------------------------------------------
-                0.00    0.00       2/2           main [1]
-[17]     0.0    0.00    0.00       2         std::vector<int, std::allocator<int> >::~vector() [17]
+                0.00    0.00       1/1           main [1]
+[17]     0.0    0.00    0.00       1         fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [17]
+                0.00    0.00   87376/87376       fractal_land::compute_subgrid(int, int, int, double, unsigned long) [13]
 -----------------------------------------------
                 0.00    0.00       1/1           main [1]
 [18]     0.0    0.00    0.00       1         Window::Window(char const*, int, int) [18]
@@ -227,10 +227,10 @@ notice and this notice are preserved.
 
 Index by function name
 
-   [2] advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [19] Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [17] std::vector<int, std::allocator<int> >::~vector()
-   [6] fractal_land::compute_subgrid(int, int, int, double, unsigned long) [20] Renderer::~Renderer() [14] void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
-   [7] fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [21] std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [25] std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
-   [3] ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [22] std::vector<ant, std::allocator<ant> >::~vector() [5] _init
+   [5] advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [19] Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [16] std::vector<int, std::allocator<int> >::~vector()
+  [13] fractal_land::compute_subgrid(int, int, int, double, unsigned long) [20] Renderer::~Renderer() [14] void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
+  [17] fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [21] std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [25] std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
+   [3] ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [22] std::vector<ant, std::allocator<ant> >::~vector() [6] _init
   [18] Window::Window(char const*, int, int) [23] std::vector<ant::state, std::allocator<ant::state> >::~vector() [1] main
-  [15] Window::~Window()      [16] std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
+   [2] Window::~Window()      [15] std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
    [4] Renderer::display(Window&, unsigned long const&) [24] std::vector<double, std::allocator<double> >::~vector()
