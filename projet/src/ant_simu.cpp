@@ -159,7 +159,7 @@ int main(int nargs, char* argv[])
     bool cont_loop = true;
     bool not_food_in_nest = true;
     std::size_t it = 0;
-    const std::size_t max_time = 100;
+    
     auto start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point start_display, start_advance, end_display, end_advance;
     auto avg_display_time = std::chrono::duration<double, std::milli>(0.);

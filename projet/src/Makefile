@@ -33,13 +33,16 @@ clean:
 ant_simu.exe : ant.o fractal_land.o renderer.o window.o ant_simu.o
 	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)	
 
-profile: clean all
-	@rm -f gmon.out profile.txt
-	@echo "Running profiling session..."
-	@./ant_simu.exe
-	@gprof ./ant_simu.exe --benchmark gmon.out > profile_vectorized.txt
-	@gprof ./ant_simu.exe --benchmark--oop gmon.out >> profile_oop.txt
-	@echo "gprof report generated: profile.txt"
+profile: clean
+	$(MAKE) PROFILE=yes all
+	@rm -f gmon.out profile_vectorized.txt profile_oop.txt
+	@echo "Profiling vectorized mode..."
+	@./ant_simu.exe --benchmark
+	@gprof ./ant_simu.exe gmon.out > profile_vectorized.txt
+	@echo "Profiling oop mode..."
+	@./ant_simu.exe --benchmark --oop
+	@gprof ./ant_simu.exe gmon.out > profile_oop.txt
+	@echo "Reports: profile_vectorized.txt, profile_oop.txt"
 
 help:
 	@echo "Available targets : "

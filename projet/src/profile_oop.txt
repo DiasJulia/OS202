@@ -1,0 +1,236 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 56.68      8.49     8.49 25005000     0.00     0.00  ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&)
+ 27.77     12.65     4.16     5001     0.83     0.83  Renderer::display(Window&, unsigned long const&)
+ 13.35     14.65     2.00     5001     0.40     2.10  advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&)
+  2.07     14.96     0.31                             _init
+  0.07     14.97     0.01    87376     0.00     0.00  fractal_land::compute_subgrid(int, int, int, double, unsigned long)
+  0.07     14.98     0.01                             main
+  0.00     14.98     0.00       14     0.00     0.00  void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
+  0.00     14.98     0.00        4     0.00     0.00  Window::~Window()
+  0.00     14.98     0.00        2     0.00     0.00  std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
+  0.00     14.98     0.00        2     0.00     0.00  std::vector<int, std::allocator<int> >::~vector()
+  0.00     14.98     0.00        1     0.00    10.00  fractal_land::fractal_land(unsigned long const&, unsigned long, double, int)
+  0.00     14.98     0.00        1     0.00     0.00  Window::Window(char const*, int, int)
+  0.00     14.98     0.00        1     0.00     0.00  Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&)
+  0.00     14.98     0.00        1     0.00     0.00  Renderer::~Renderer()
+  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::reserve(unsigned long)
+  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant, std::allocator<ant> >::~vector()
+  0.00     14.98     0.00        1     0.00     0.00  std::vector<ant::state, std::allocator<ant::state> >::~vector()
+  0.00     14.98     0.00        1     0.00     0.00  std::vector<double, std::allocator<double> >::~vector()
+  0.00     14.98     0.00        1     0.00     0.00  std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2024 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 4 byte(s) for 0.07% of 14.98 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     97.9    0.01   14.66                 main [1]
+                2.00    8.49    5001/5001        advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
+                4.16    0.00    5001/5001        Renderer::display(Window&, unsigned long const&) [4]
+                0.00    0.01       1/1           fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
+                0.00    0.00       4/4           Window::~Window() [15]
+                0.00    0.00       2/2           std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [16]
+                0.00    0.00       2/2           std::vector<int, std::allocator<int> >::~vector() [17]
+                0.00    0.00       1/1           std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [21]
+                0.00    0.00       1/1           Window::Window(char const*, int, int) [18]
+                0.00    0.00       1/1           Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [19]
+                0.00    0.00       1/1           Renderer::~Renderer() [20]
+                0.00    0.00       1/1           std::vector<ant::state, std::allocator<ant::state> >::~vector() [23]
+                0.00    0.00       1/1           std::vector<unsigned long, std::allocator<unsigned long> >::~vector() [25]
+                0.00    0.00       1/1           std::vector<double, std::allocator<double> >::~vector() [24]
+                0.00    0.00       1/1           std::vector<ant, std::allocator<ant> >::~vector() [22]
+-----------------------------------------------
+                2.00    8.49    5001/5001        main [1]
+[2]     70.0    2.00    8.49    5001         advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
+                8.49    0.00 25005000/25005000     ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
+-----------------------------------------------
+                8.49    0.00 25005000/25005000     advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [2]
+[3]     56.7    8.49    0.00 25005000         ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [3]
+-----------------------------------------------
+                4.16    0.00    5001/5001        main [1]
+[4]     27.8    4.16    0.00    5001         Renderer::display(Window&, unsigned long const&) [4]
+                0.00    0.00      14/14          void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&) [14]
+-----------------------------------------------
+                                                 <spontaneous>
+[5]      2.1    0.31    0.00                 _init [5]
+-----------------------------------------------
+                0.01    0.00   87376/87376       fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
+[6]      0.1    0.01    0.00   87376         fractal_land::compute_subgrid(int, int, int, double, unsigned long) [6]
+-----------------------------------------------
+                0.00    0.01       1/1           main [1]
+[7]      0.1    0.00    0.01       1         fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [7]
+                0.01    0.00   87376/87376       fractal_land::compute_subgrid(int, int, int, double, unsigned long) [6]
+-----------------------------------------------
+                0.00    0.00      14/14          Renderer::display(Window&, unsigned long const&) [4]
+[14]     0.0    0.00    0.00      14         void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&) [14]
+-----------------------------------------------
+                0.00    0.00       4/4           main [1]
+[15]     0.0    0.00    0.00       4         Window::~Window() [15]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[16]     0.0    0.00    0.00       2         std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector() [16]
+-----------------------------------------------
+                0.00    0.00       2/2           main [1]
+[17]     0.0    0.00    0.00       2         std::vector<int, std::allocator<int> >::~vector() [17]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[18]     0.0    0.00    0.00       1         Window::Window(char const*, int, int) [18]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[19]     0.0    0.00    0.00       1         Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [19]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[20]     0.0    0.00    0.00       1         Renderer::~Renderer() [20]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[21]     0.0    0.00    0.00       1         std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [21]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[22]     0.0    0.00    0.00       1         std::vector<ant, std::allocator<ant> >::~vector() [22]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[23]     0.0    0.00    0.00       1         std::vector<ant::state, std::allocator<ant::state> >::~vector() [23]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[24]     0.0    0.00    0.00       1         std::vector<double, std::allocator<double> >::~vector() [24]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[25]     0.0    0.00    0.00       1         std::vector<unsigned long, std::allocator<unsigned long> >::~vector() [25]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2024 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+   [2] advance_time(fractal_land const&, pheronome&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> >&, unsigned long&) [19] Renderer::Renderer(fractal_land const&, pheronome const&, SDL_Point const&, SDL_Point const&, std::vector<ant, std::allocator<ant> > const&) [17] std::vector<int, std::allocator<int> >::~vector()
+   [6] fractal_land::compute_subgrid(int, int, int, double, unsigned long) [20] Renderer::~Renderer() [14] void std::vector<unsigned long, std::allocator<unsigned long> >::_M_realloc_insert<unsigned long const&>(__gnu_cxx::__normal_iterator<unsigned long*, std::vector<unsigned long, std::allocator<unsigned long> > >, unsigned long const&)
+   [7] fractal_land::fractal_land(unsigned long const&, unsigned long, double, int) [21] std::vector<ant, std::allocator<ant> >::reserve(unsigned long) [25] std::vector<unsigned long, std::allocator<unsigned long> >::~vector()
+   [3] ant::advance(pheronome&, fractal_land const&, SDL_Point const&, SDL_Point const&, unsigned long&) [22] std::vector<ant, std::allocator<ant> >::~vector() [5] _init
+  [18] Window::Window(char const*, int, int) [23] std::vector<ant::state, std::allocator<ant::state> >::~vector() [1] main
+  [15] Window::~Window()      [16] std::vector<std::array<double, 2ul>, std::allocator<std::array<double, 2ul> > >::~vector()
+   [4] Renderer::display(Window&, unsigned long const&) [24] std::vector<double, std::allocator<double> >::~vector()
