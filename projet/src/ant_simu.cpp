@@ -208,11 +208,11 @@ int main(int nargs, char* argv[])
         const auto elapsed = std::chrono::duration<double, std::milli>(
             std::chrono::high_resolution_clock::now() - start ).count();
         std::cout << "[benchmark] mode=" << (use_oop_mode ? "oop" : "vectorized")
-                  << " iters=" << benchmark_iters
-                  << " total_ms=" << elapsed
-                  << " ms_per_iter=" << (benchmark_iters == 0 ? 0. : elapsed / benchmark_iters)
-                  << " avg_advance_ms=" << (avg_advance_time.count() / benchmark_iters)
-                  << " avg_display_ms=" << (avg_display_time.count() / benchmark_iters)
+                  << " iters=" << benchmark_iters << "\n"
+                  << " total_ms=" << elapsed << "\n"
+                  << " ms_per_iter=" << (benchmark_iters == 0 ? 0. : elapsed / benchmark_iters) << "\n"
+                  << " avg_advance_ms=" << (avg_advance_time.count() / benchmark_iters) << "\n"
+                  << " avg_display_ms=" << (avg_display_time.count() / benchmark_iters) << "\n"
                   << " food=" << food_quantity << std::endl;
     } 
     SDL_Quit();
