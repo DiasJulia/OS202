@@ -80,9 +80,13 @@ int main(int nargs, char* argv[])
 {
     SDL_Init( SDL_INIT_VIDEO );
     bool use_oop_mode = false;
+    bool benchmark_mode = false;
+    std::size_t benchmark_iters = 5000;
     for ( int arg = 1; arg < nargs; ++arg ) {
         if ( std::string(argv[arg]) == "--oop" )
             use_oop_mode = true;
+        else if ( std::string(argv[arg]) == "--benchmark" )
+            benchmark_mode = true;
     }
     std::size_t seed = 2026; // Graine pour la génération aléatoire ( reproductible )
     const int nb_ants = 5000; // Nombre de fourmis
@@ -124,7 +128,7 @@ int main(int nargs, char* argv[])
 
     if ( use_oop_mode ) {
         std::cout << "Mode POO (--oop)" << std::endl;
-        
+
         auto gen_ant_pos = [&land, &seed] () { return rand_int32(0, land.dimensions()-1, seed); };
         for ( size_t i = 0; i < nb_ants; ++i )
             ants.emplace_back(position_t{gen_ant_pos(), gen_ant_pos()}, seed + static_cast<std::size_t>(i));
@@ -157,12 +161,20 @@ int main(int nargs, char* argv[])
     std::size_t it = 0;
     const std::size_t max_time = 100;
     auto start = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point start_display, start_advance, end_display, end_advance;
+    auto avg_display_time = std::chrono::duration<double, std::milli>(0.);
+    auto avg_advance_time = std::chrono::duration<double, std::milli>(0.);
     while (cont_loop) {
         ++it;
+        if ( benchmark_mode && it > benchmark_iters )
+                cont_loop = false;
+        
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT)
                 cont_loop = false;
         }
+        if ( benchmark_mode )
+            start_advance = std::chrono::high_resolution_clock::now();
         if ( use_oop_mode ) {
             advance_time( land, phen, pos_nest, pos_food, ants, food_quantity );
         } else {
@@ -173,20 +185,36 @@ int main(int nargs, char* argv[])
             for ( std::size_t i = 0; i < ant_pos_x.size(); ++i )
                 ants.emplace_back(position_t{ant_pos_x[i], ant_pos_y[i]}, ant_seeds[i]);
         }
-        
+        if ( benchmark_mode ) {
+            end_advance = std::chrono::high_resolution_clock::now();
+            avg_advance_time += end_advance - start_advance;
+            
+            start_display = std::chrono::high_resolution_clock::now();
+        }
         renderer.display( win, food_quantity );
         win.blit();
+        if ( benchmark_mode ) {
+            end_display = std::chrono::high_resolution_clock::now();
+            avg_display_time += end_display - start_display;
+        }
         if ( not_food_in_nest && food_quantity > 0 ) {
             std::cout << "La première nourriture est arrivée au nid a l'iteration " << it << std::endl;
             not_food_in_nest = false;
         }
-        
-        if ( std::chrono::high_resolution_clock::now() - start > std::chrono::seconds(max_time) ) {
-            std::cout << "Temps maximum de simulation atteint (" << max_time << " secondes)." << std::endl;
-            cont_loop = false;
-        }
         //SDL_Delay(10);
     }
+
+    if ( benchmark_mode ) {
+        const auto elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::high_resolution_clock::now() - start ).count();
+        std::cout << "[benchmark] mode=" << (use_oop_mode ? "oop" : "vectorized")
+                  << " iters=" << benchmark_iters
+                  << " total_ms=" << elapsed
+                  << " ms_per_iter=" << (benchmark_iters == 0 ? 0. : elapsed / benchmark_iters)
+                  << " avg_advance_ms=" << (avg_advance_time.count() / benchmark_iters)
+                  << " avg_display_ms=" << (avg_display_time.count() / benchmark_iters)
+                  << " food=" << food_quantity << std::endl;
+    } 
     SDL_Quit();
     return 0;
 }
