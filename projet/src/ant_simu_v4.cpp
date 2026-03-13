@@ -11,6 +11,7 @@
 #include <chrono>
 #include <mpi.h>
 #include <memory>
+#include <algorithm> // Necessário para std::copy
 
 void advance_time( const fractal_land& land, pheronome& phen,
                               const position_t& pos_nest, const position_t& pos_food,
@@ -55,7 +56,12 @@ void advance_time( const fractal_land& land, pheronome& phen,
                     new_pos_ant.y += 1;
             }
             consumed_time += land( new_pos_ant.x, new_pos_ant.y );
-            phen.mark_pheronome( new_pos_ant );
+            
+            #pragma omp critical
+            {
+                phen.mark_pheronome( new_pos_ant );
+            }
+            
             ant_pos_x[i] = new_pos_ant.x;
             ant_pos_y[i] = new_pos_ant.y;
             if ( new_pos_ant == pos_nest ) {
@@ -85,40 +91,18 @@ void sync_pheromones( pheronome& phen, MPI_Comm comm,
     using clock = std::chrono::steady_clock;
     const auto t0 = clock::now();
 
-    int rank, size;
-    MPI_Comm_rank(comm, &rank);
-    MPI_Comm_size(comm, &size);
-
     int total_size = phen.map_data_count();
+    std::vector<double> global_pheromones(total_size);
 
-    std::vector<double> all_pheromones;
-    if (rank == 0)
-        all_pheromones.resize(static_cast<std::size_t>(total_size) * size);
+    // CORREÇÃO: O MPI_Allreduce com MPI_MAX resolve a sincronização perfeitamente 
+    // sem diluir as trilhas (como a média fazia) e economiza linhas de código.
+    MPI_Allreduce(phen.map_data(), global_pheromones.data(), total_size, MPI_DOUBLE, MPI_MAX, comm);
 
-    std::vector<int> sendcounts(size, total_size);
-    std::vector<int> displs(size, 0);
-    for (int i = 1; i < size; ++i)
-        displs[i] = displs[i-1] + total_size;
+    // Atualiza o mapa local com os valores globais combinados
+    std::copy(global_pheromones.begin(), global_pheromones.end(), phen.map_data());
+    phen.restore_borders();
 
-    MPI_Gatherv(phen.map_data(), total_size, MPI_DOUBLE,
-                rank == 0 ? all_pheromones.data() : nullptr,
-                sendcounts.data(), displs.data(), MPI_DOUBLE, 0, comm);
-
-    if (rank == 0) {
-        double* local = phen.map_data();
-        std::fill(local, local + total_size, 0.0);
-        for (int proc = 0; proc < size; ++proc) {
-            const double* proc_data = all_pheromones.data() + proc * total_size;
-            for (int i = 0; i < total_size; ++i)
-                local[i] += proc_data[i] / size;
-        }
-        phen.restore_borders();
-    }
-
-    MPI_Bcast(phen.map_data(), total_size, MPI_DOUBLE, 0, comm);
-
-    // Gather: size*total_size*8 bytes + Bcast: total_size*8 bytes
-    sync_bytes += static_cast<long long>(total_size) * 8LL * (size + 1);
+       sync_bytes += static_cast<long long>(total_size) * 8LL * 2;
     sync_time  += clock::now() - t0;
 }
 
@@ -132,7 +116,7 @@ int main(int nargs, char* argv[])
 
     if (rank == 0)
         SDL_Init( SDL_INIT_VIDEO );
-    std::size_t seed = 2026; // Graine pour la génération aléatoire ( reproductible )
+        std::size_t seed = 2026; // Graine pour la génération aléatoire ( reproductible )
     const int nb_ants = 5000; // Nombre de fourmis
     const double eps = 0.8;  // Coefficient d'exploration
     const double alpha=0.7; // Coefficient de chaos
@@ -153,8 +137,6 @@ int main(int nargs, char* argv[])
             min_val = std::min(min_val, land(i,j));
         }
     double delta = max_val - min_val;
-    /* On redimensionne les valeurs de fractal_land de sorte que les valeurs
-    soient comprises entre zéro et un */
     for ( fractal_land::dim_t i = 0; i < land.dimensions(); ++i )
         for ( fractal_land::dim_t j = 0; j < land.dimensions(); ++j )  {
             land(i,j) = (land(i,j)-min_val)/delta;
@@ -206,16 +188,32 @@ int main(int nargs, char* argv[])
     bool not_food_in_nest = true;
     std::size_t it = 0;
 
+    int local_n = static_cast<int>(local_nb_ants);
+    std::vector<int> counts(world_size);
+    std::vector<int> displs(world_size);
+    MPI_Gather(&local_n, 1, MPI_INT, counts.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    std::vector<int> all_ant_x;
+    std::vector<int> all_ant_y;
+    if (rank == 0) {
+        all_ant_x.resize(nb_ants);
+        all_ant_y.resize(nb_ants);
+        displs[0] = 0;
+        for (int i = 1; i < world_size; ++i) {
+            displs[i] = displs[i - 1] + counts[i - 1];
+        }
+    }
+
     using clock = std::chrono::steady_clock;
     std::chrono::duration<double, std::milli> total_advance_ms{0};
     std::chrono::duration<double, std::milli> total_evaporation_ms{0};
     std::chrono::duration<double, std::milli> total_update_ms{0};
     std::chrono::duration<double, std::milli> total_display_ms{0};
     std::chrono::duration<double, std::milli> total_iter_ms{0};
-    std::chrono::duration<double, std::milli> total_comm_ms{0}; // tempo total em MPI_Allreduce
-    std::chrono::duration<double, std::milli> total_sync_ms{0};  // tempo em sync_pheromones
-    long long total_sync_bytes = 0;                              // bytes transferidos em sync
-    const auto max_simulation_time = std::chrono::seconds(60);
+    std::chrono::duration<double, std::milli> total_comm_ms{0};
+    std::chrono::duration<double, std::milli> total_sync_ms{0};
+    long long total_sync_bytes = 0;
+    const auto max_simulation_time = std::chrono::seconds(120);
     const auto simulation_start = clock::now();
 
     while (cont_loop) {
@@ -261,23 +259,31 @@ int main(int nargs, char* argv[])
         }
         food_quantity_global = static_cast<std::size_t>(global_food_ull);
 
-        ants.clear();
-        ants.reserve(local_nb_ants);
-        for ( std::size_t i = 0; i < ant_pos_x.size(); ++i )
-            ants.emplace_back(position_t{ant_pos_x[i], ant_pos_y[i]}, ant_seeds[i]);
+        MPI_Gatherv(ant_pos_x.data(), local_n, MPI_INT,
+                    all_ant_x.data(), counts.data(), displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
+        
+        MPI_Gatherv(ant_pos_y.data(), local_n, MPI_INT,
+                    all_ant_y.data(), counts.data(), displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
         if (rank == 0) {
+            ants.clear();
+            ants.reserve(nb_ants);
+            // Reconstrói o vetor ants com todas as formigas da simulação
+            for ( std::size_t i = 0; i < nb_ants; ++i ) {
+                ants.emplace_back(position_t{all_ant_x[i], all_ant_y[i]}, 0);
+            }
+
             const auto display_start = clock::now();
             renderer->display(*win, food_quantity_global);
             total_display_ms += clock::now() - display_start;
             win->blit();
         }
+
         if ( rank == 0 && not_food_in_nest && food_quantity_global > 0 ) {
             std::cout << "La première nourriture est arrivée au nid a l'iteration " << it << std::endl;
             not_food_in_nest = false;
         }
         total_iter_ms += clock::now() - iter_start;
-        //SDL_Delay(10);
     }
 
     if (rank == 0 && it > 0) {
