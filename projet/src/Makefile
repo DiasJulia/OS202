@@ -18,7 +18,7 @@ CXXFLAGS2 += $(PROF_FLAGS)
 LDFLAGS += -pg
 endif
 
-ALL= ant_simu.exe ant_simu_v2.exe
+ALL= ant_simu.exe ant_simu_v2.exe ant_simu_v3.exe
 
 default:	help
 
@@ -36,9 +36,12 @@ ant_simu.exe : ant.o fractal_land.o renderer.o window.o ant_simu.o
 ant_simu_v2.exe : ant.o fractal_land.o renderer.o window.o ant_simu_v2.o
 	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)
 
+ant_simu_v3.exe : ant.o fractal_land.o renderer.o window.o ant_simu_v3.o
+	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)
+
 profile: clean
 	$(MAKE) PROFILE=yes all
-	@rm -f gmon.out profile_original.txt profile_v2.txt profile.txt
+	@rm -f gmon.out profile_original.txt profile_v2.txt profile_v3.txt profile.txt
 	@echo "Profiling original mode..."
 	@./ant_simu.exe
 	@gprof ./ant_simu.exe gmon.out > profile_original.txt
@@ -46,7 +49,11 @@ profile: clean
 	@rm -f gmon.out
 	@./ant_simu_v2.exe
 	@gprof ./ant_simu_v2.exe gmon.out > profile_v2.txt
-	@cat profile_original.txt profile_v2.txt > profile.txt
+	@echo "Profiling parallel mode..."
+	@rm -f gmon.out
+	@./ant_simu_v3.exe
+	@gprof ./ant_simu_v3.exe gmon.out > profile_v3.txt
+	@cat profile_original.txt profile_v2.txt profile_v3.txt > profile.txt
 
 help:
 	@echo "Available targets : "
