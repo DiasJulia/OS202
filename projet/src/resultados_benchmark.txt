@@ -1,0 +1,251 @@
+Iniciando a bateria de testes...
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=2 mpirun -np 1 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1996
+Simulation stopped: max execution time reached (120 s).
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 2           | 5000              | 3.0735
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            1
+  avg advance_time (ms):    3.63873
+    avg ant compute (ms):   3.0735
+    avg evaporation (ms):   0.556566
+    avg pheromone upd (ms): 0.00866567
+  avg pheromone sync (ms):  1.52283
+    sync data/call (MB):    8.48513
+  avg other MPI comm (ms):  0.00346137
+  compute/comm ratio:       2.01371
+  avg display (ms):         22.1377
+  avg iteration (ms):       29.2275
+  total iterations:         4106
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=4 mpirun -np 1 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1996
+Simulation stopped: max execution time reached (120 s).
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 4           | 5000              | 2.99532
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            1
+  avg advance_time (ms):    3.55064
+    avg ant compute (ms):   2.99532
+    avg evaporation (ms):   0.546535
+    avg pheromone upd (ms): 0.00878483
+  avg pheromone sync (ms):  1.56357
+    sync data/call (MB):    8.48513
+  avg other MPI comm (ms):  0.0035286
+  compute/comm ratio:       1.91138
+  avg display (ms):         22.2927
+  avg iteration (ms):       29.3341
+  total iterations:         4092
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=8 mpirun -np 1 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1996
+Simulation stopped: max execution time reached (120 s).
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 8           | 5000              | 3.05515
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            1
+  avg advance_time (ms):    3.62447
+    avg ant compute (ms):   3.05515
+    avg evaporation (ms):   0.560691
+    avg pheromone upd (ms): 0.0086237
+  avg pheromone sync (ms):  1.64243
+    sync data/call (MB):    8.4851
+  avg other MPI comm (ms):  0.00404572
+  compute/comm ratio:       1.85557
+  avg display (ms):         22.2911
+  avg iteration (ms):       29.6374
+  total iterations:         4050
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=1 mpirun -np 2 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1979
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 1           | 2500              | 1.2575
+1    | 1           | 2500              | 1.30642
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            2
+  avg advance_time (ms):    1.96568
+    avg ant compute (ms):   1.2575
+    avg evaporation (ms):   0.698485
+    avg pheromone upd (ms): 0.0096929
+  avg pheromone sync (ms):  6.67164
+    sync data/call (MB):    8.48498
+  avg other MPI comm (ms):  0.0332323
+  compute/comm ratio:       0.187551
+  avg display (ms):         20.5279
+  avg iteration (ms):       31.3221
+  total iterations:         3827
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=1 mpirun -np 4 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1935
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 1           | 1250              | 1.2906
+1    | 1           | 1250              | 1.39995
+2    | 1           | 1250              | 1.06815
+3    | 1           | 1250              | 0.781442
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            4
+  avg advance_time (ms):    2.79985
+    avg ant compute (ms):   1.2906
+    avg evaporation (ms):   1.49505
+    avg pheromone upd (ms): 0.0141947
+  avg pheromone sync (ms):  12.2716
+    sync data/call (MB):    8.48468
+  avg other MPI comm (ms):  0.277317
+  compute/comm ratio:       0.102846
+  avg display (ms):         18.5536
+  avg iteration (ms):       35.5602
+  total iterations:         3369
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=1 mpirun -np 8 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 2104
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 1           | 625              | 0.953979
+1    | 1           | 625              | 0.937653
+2    | 1           | 625              | 0.835615
+3    | 1           | 625              | 0.978961
+4    | 1           | 625              | 1.01908
+5    | 1           | 625              | 0.905962
+6    | 1           | 625              | 0.859001
+7    | 1           | 625              | 1.06025
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            8
+  avg advance_time (ms):    3.91905
+    avg ant compute (ms):   0.953979
+    avg evaporation (ms):   2.9249
+    avg pheromone upd (ms): 0.0401744
+  avg pheromone sync (ms):  25.0159
+    sync data/call (MB):    8.48402
+  avg other MPI comm (ms):  0.742672
+  compute/comm ratio:       0.0370354
+  avg display (ms):         13.3299
+  avg iteration (ms):       44.962
+  total iterations:         2665
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=8 mpirun -np 2 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1979
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 8           | 2500              | 1.45908
+1    | 8           | 2500              | 1.49585
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            2
+  avg advance_time (ms):    2.2228
+    avg ant compute (ms):   1.45908
+    avg evaporation (ms):   0.753146
+    avg pheromone upd (ms): 0.0105718
+  avg pheromone sync (ms):  6.37516
+    sync data/call (MB):    8.48498
+  avg other MPI comm (ms):  0.0168485
+  compute/comm ratio:       0.228267
+  avg display (ms):         20.6698
+  avg iteration (ms):       31.3855
+  total iterations:         3820
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=8 mpirun -np 4 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 1935
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 8           | 1250              | 1.56882
+1    | 8           | 1250              | 1.62993
+2    | 8           | 1250              | 1.61279
+3    | 8           | 1250              | 1.63482
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            4
+  avg advance_time (ms):    2.86327
+    avg ant compute (ms):   1.56882
+    avg evaporation (ms):   1.27927
+    avg pheromone upd (ms): 0.0151757
+  avg pheromone sync (ms):  13.1842
+    sync data/call (MB):    8.48465
+  avg other MPI comm (ms):  0.385059
+  compute/comm ratio:       0.115616
+  avg display (ms):         17.8582
+  avg iteration (ms):       35.9943
+  total iterations:         3330
+
+============================================================
+EXECUTANDO: OMP_NUM_THREADS=8 mpirun -np 8 ./ant_simu_v4.exe
+============================================================
+La première nourriture est arrivée au nid a l'iteration 2104
+
+--- Détails par Processus (MPI Rank) ---
+Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)
+--------------------------------------------------------------
+0    | 8           | 625              | 1.58671
+1    | 8           | 625              | 1.49567
+2    | 8           | 625              | 1.48159
+3    | 8           | 625              | 1.47986
+4    | 8           | 625              | 1.48318
+5    | 8           | 625              | 1.44297
+6    | 8           | 625              | 1.47413
+7    | 8           | 625              | 1.4983
+--------------------------------------------------------------
+
+Benchmark (ms)
+  MPI processes:            8
+  avg advance_time (ms):    4.74267
+    avg ant compute (ms):   1.58671
+    avg evaporation (ms):   3.10768
+    avg pheromone upd (ms): 0.0482845
+  avg pheromone sync (ms):  23.0639
+    sync data/call (MB):    8.48402
+  avg other MPI comm (ms):  0.545769
+  compute/comm ratio:       0.0672057
+  avg display (ms):         14.6596
+  avg iteration (ms):       44.9345
+  total iterations:         2665
