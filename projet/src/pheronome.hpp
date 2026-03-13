@@ -105,6 +105,11 @@ public:
         m_map_of_pheronome[( m_pos_nest.x + 1 ) * m_stride + m_pos_nest.y + 1][1] = 1;
     }
 
+    // Acesso ao buffer interno para sincronização MPI (ex.: sync_pheromones)
+    double* map_data() { return reinterpret_cast<double*>(m_map_of_pheronome.data()); }
+    int     map_data_count() const { return static_cast<int>(m_map_of_pheronome.size() * 2); }
+    void    restore_borders() { cl_update(); }
+
 private:
     size_t index( const position_t& pos ) const
     {

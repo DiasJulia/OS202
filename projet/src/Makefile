@@ -51,7 +51,7 @@ run_v4: ant_simu_v4.exe
 
 profile: clean
 	$(MAKE) PROFILE=yes all
-	@rm -f gmon.out profile_original.txt profile_v2.txt profile_v3.txt profile_v4_t2.txt profile_v4_t4.txt profile_v4_t8.txt profile.txt
+	@rm -f gmon.out profile_original.txt profile_v2.txt profile_v3_t2.txt profile_v3_t4.txt profile_v3_t8.txt
 	@echo "Profiling original mode..."
 	@./ant_simu.exe
 	@gprof ./ant_simu.exe gmon.out > profile_original.txt
@@ -71,6 +71,18 @@ profile: clean
 	@rm -f gmon.out
 	@OMP_NUM_THREADS=8 ./ant_simu_v3.exe
 	@gprof ./ant_simu_v3.exe gmon.out > profile_v3_t8.txt
+	@echo "Profiling MPI+OpenMP mode (V4_NP=4, V4_OMP_THREADS=2)..."
+	@rm -f gmon.out
+	@V4_NP=4 V4_OMP_THREADS=2 $(MAKE) run_v4
+	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t2.txt
+	@echo "Profiling MPI+OpenMP mode (V4_NP=4, V4_OMP_THREADS=4)..."
+	@rm -f gmon.out	
+	@V4_NP=4 V4_OMP_THREADS=4 $(MAKE) run_v4
+	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t4.txt
+	@echo "Profiling MPI+OpenMP mode (V4_NP=4, V4_OMP_THREADS=8)..."
+	@rm -f gmon.out	
+	@V4_NP=4 V4_OMP_THREADS=8 $(MAKE) run_v4
+	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t8.txt
 
 help:
 	@echo "Available targets : "
