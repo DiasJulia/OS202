@@ -147,7 +147,7 @@ int main(int nargs, char* argv[])
     std::chrono::duration<double, std::milli> total_update_ms{0};
     std::chrono::duration<double, std::milli> total_display_ms{0};
     std::chrono::duration<double, std::milli> total_iter_ms{0};
-    const auto max_simulation_time = std::chrono::seconds(60);
+    const auto max_simulation_time = std::chrono::seconds(120);
     const auto simulation_start = clock::now();
 
     while (cont_loop) {
