@@ -14,8 +14,11 @@ void advance_time( const fractal_land& land, pheronome& phen,
                               const position_t& pos_nest, const position_t& pos_food,
                               std::vector<int>& ant_pos_x, std::vector<int>& ant_pos_y,
                               std::vector<ant::state>& ant_states, std::vector<std::size_t>& ant_seeds,
-                              std::size_t& cpteur, double eps )
+                              std::size_t& cpteur, double eps,
+                              std::chrono::duration<double, std::milli>& evaporation_time,
+                              std::chrono::duration<double, std::milli>& update_time )
 {
+    using clock = std::chrono::steady_clock;
     #pragma omp parallel for
     for ( std::size_t i = 0; i < ant_pos_x.size(); ++i ) {
         auto ant_choice = [&ant_seeds, i]() mutable { return rand_double( 0., 1., ant_seeds[i] ); };
@@ -63,8 +66,13 @@ void advance_time( const fractal_land& land, pheronome& phen,
                 ant_states[i] = ant::loaded;
         }
     }
+    const auto evaporation_start = clock::now();
     phen.do_evaporation();
+    evaporation_time += clock::now() - evaporation_start;
+
+    const auto update_start = clock::now();
     phen.update();
+    update_time += clock::now() - update_start;
 }
 
 int main(int nargs, char* argv[])
@@ -138,6 +146,8 @@ int main(int nargs, char* argv[])
 
     using clock = std::chrono::steady_clock;
     std::chrono::duration<double, std::milli> total_advance_ms{0};
+    std::chrono::duration<double, std::milli> total_evaporation_ms{0};
+    std::chrono::duration<double, std::milli> total_update_ms{0};
     std::chrono::duration<double, std::milli> total_display_ms{0};
     std::chrono::duration<double, std::milli> total_iter_ms{0};
     const auto max_simulation_time = std::chrono::seconds(60);
@@ -159,7 +169,8 @@ int main(int nargs, char* argv[])
 
         const auto advance_start = clock::now();
         advance_time( land, phen, pos_nest, pos_food,
-                                     ant_pos_x, ant_pos_y, ant_states, ant_seeds, food_quantity, eps );
+                                     ant_pos_x, ant_pos_y, ant_states, ant_seeds, food_quantity, eps,
+                                     total_evaporation_ms, total_update_ms );
         ants.clear();
         ants.reserve(nb_ants);
         for ( std::size_t i = 0; i < ant_pos_x.size(); ++i )
@@ -182,6 +193,8 @@ int main(int nargs, char* argv[])
     if (it > 0) {
         std::cout << "Benchmark (ms)\n" 
         << "avg advance_time (ms): " << (total_advance_ms.count() / it)
+        << "\navg evaporation (ms): " << (total_evaporation_ms.count() / it)
+        << "\navg pheromone update (ms): " << (total_update_ms.count() / it)
         << "\navg display (ms): " << (total_display_ms.count() / it)
         << "\navg iteration (ms): " << (total_iter_ms.count() / it)
         << "\ntotal amount of iterations: " << it << std::endl;

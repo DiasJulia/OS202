@@ -11,12 +11,21 @@
 
 void advance_time( const fractal_land& land, pheronome& phen, 
                    const position_t& pos_nest, const position_t& pos_food,
-                   std::vector<ant>& ants, std::size_t& cpteur )
+                   std::vector<ant>& ants, std::size_t& cpteur,
+                   std::chrono::duration<double, std::milli>& evaporation_time,
+                   std::chrono::duration<double, std::milli>& update_time )
 {
+    using clock = std::chrono::steady_clock;
     for ( size_t i = 0; i < ants.size(); ++i )
         ants[i].advance(phen, land, pos_food, pos_nest, cpteur);
+
+    const auto evaporation_start = clock::now();
     phen.do_evaporation();
+    evaporation_time += clock::now() - evaporation_start;
+
+    const auto update_start = clock::now();
     phen.update();
+    update_time += clock::now() - update_start;
 }
 
 int main(int nargs, char* argv[])
@@ -70,6 +79,8 @@ int main(int nargs, char* argv[])
     std::size_t it = 0;
     using clock = std::chrono::steady_clock;
     std::chrono::duration<double, std::milli> total_advance_ms{0};
+    std::chrono::duration<double, std::milli> total_evaporation_ms{0};
+    std::chrono::duration<double, std::milli> total_update_ms{0};
     std::chrono::duration<double, std::milli> total_display_ms{0};
     std::chrono::duration<double, std::milli> total_iter_ms{0};
     const auto max_simulation_time = std::chrono::seconds(60);
@@ -90,7 +101,8 @@ int main(int nargs, char* argv[])
         }
 
         const auto advance_start = clock::now();
-        advance_time( land, phen, pos_nest, pos_food, ants, food_quantity );
+        advance_time( land, phen, pos_nest, pos_food, ants, food_quantity,
+                  total_evaporation_ms, total_update_ms );
         total_advance_ms += clock::now() - advance_start;
 
         const auto display_start = clock::now();
@@ -108,6 +120,8 @@ int main(int nargs, char* argv[])
     if (it > 0) {
         std::cout << "Benchmark (ms)\n" 
         << "avg advance_time (ms): " << (total_advance_ms.count() / it)
+        << "\navg evaporation (ms): " << (total_evaporation_ms.count() / it)
+        << "\navg pheromone update (ms): " << (total_update_ms.count() / it)
         << "\navg display (ms): " << (total_display_ms.count() / it)
         << "\navg iteration (ms): " << (total_iter_ms.count() / it)
         << "\ntotal amount of iterations: " << it << std::endl;

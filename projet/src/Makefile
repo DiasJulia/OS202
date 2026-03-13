@@ -20,8 +20,6 @@ LDFLAGS += -pg
 endif
 
 ALL= ant_simu.exe ant_simu_v2.exe ant_simu_v3.exe ant_simu_v4.exe
-V4_NP ?= 2
-V4_OMP_THREADS ?= 2
 
 default:	help
 
@@ -61,23 +59,18 @@ profile: clean
 	@rm -f gmon.out
 	@./ant_simu_v2.exe
 	@gprof ./ant_simu_v2.exe gmon.out > profile_v2.txt
-	@echo "Profiling parallel mode..."
+	@echo "Profiling parallel mode (OMP_NUM_THREADS=2)..."
 	@rm -f gmon.out
-	@./ant_simu_v3.exe
-	@gprof ./ant_simu_v3.exe gmon.out > profile_v3.txt
-	@echo "Profiling first parallelization strategy (OMP_NUM_THREADS=2)..."
+	@OMP_NUM_THREADS=2 ./ant_simu_v3.exe
+	@gprof ./ant_simu_v3.exe gmon.out > profile_v3_t2.txt
+	@echo "Profiling parallel mode (OMP_NUM_THREADS=4)..."
 	@rm -f gmon.out
-	@OMP_NUM_THREADS=2 mpirun -np $(V4_NP) ./ant_simu_v4.exe
-	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t2.txt
-	@echo "Profiling first parallelization strategy (OMP_NUM_THREADS=4)..."
+	@OMP_NUM_THREADS=4 ./ant_simu_v3.exe
+	@gprof ./ant_simu_v3.exe gmon.out > profile_v3_t4.txt
+	@echo "Profiling parallel mode (OMP_NUM_THREADS=8)..."
 	@rm -f gmon.out
-	@OMP_NUM_THREADS=4 mpirun -np $(V4_NP) ./ant_simu_v4.exe
-	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t4.txt
-	@echo "Profiling first parallelization strategy (OMP_NUM_THREADS=8)..."
-	@rm -f gmon.out
-	@OMP_NUM_THREADS=8 mpirun -np $(V4_NP) ./ant_simu_v4.exe
-	@gprof ./ant_simu_v4.exe gmon.out > profile_v4_t8.txt
-	@cat profile_original.txt profile_v2.txt profile_v3.txt profile_v4_t2.txt profile_v4_t4.txt profile_v4_t8.txt > profile.txt
+	@OMP_NUM_THREADS=8 ./ant_simu_v3.exe
+	@gprof ./ant_simu_v3.exe gmon.out > profile_v3_t8.txt
 
 help:
 	@echo "Available targets : "
@@ -86,6 +79,7 @@ help:
 	@echo "    run_v4         : execute ant_simu_v4.exe with MPI/OMP"
 	@echo "Add DEBUG=yes to compile in debug"
 	@echo "Add PROFILE=yes to compile with gprof instrumentation"
+	@echo "Add V3_OMP_THREADS=<n> to set OpenMP threads for v3 in profile"
 	@echo "Add V4_NP=<n> and V4_OMP_THREADS=<n> for run_v4"
 	@echo "Configuration :"
 	@echo "    CXX      :    $(CXX)"
