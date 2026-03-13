@@ -7,5 +7,7 @@
 **/rapport.toc*
 **/rapport.synctex.gz
 
+**/*.exe
 **/*.o
 **/*.out
+**/src_old/*

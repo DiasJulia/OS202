@@ -18,14 +18,14 @@ CXXFLAGS2 += $(PROF_FLAGS)
 LDFLAGS += -pg
 endif
 
-ALL= ant_simu.exe 
+ALL= ant_simu.exe ant_simu_v2.exe
 
 default:	help
 
 all: $(ALL)
 
 clean:
-	@rm -fr *.o *.exe *~ gmon.out profile.txt
+	@rm -fr *.o *.exe *~ gmon.out profile.txt profile_original.txt profile_v2.txt
 
 .cpp.o:
 	$(CXX) $(CXXFLAGS2) -c $^ -o $@	
@@ -33,16 +33,20 @@ clean:
 ant_simu.exe : ant.o fractal_land.o renderer.o window.o ant_simu.o
 	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)	
 
+ant_simu_v2.exe : ant.o fractal_land.o renderer.o window.o ant_simu_v2.o
+	$(CXX) $(CXXFLAGS2) $^ -o $@ $(LIB) $(LDFLAGS)
+
 profile: clean
 	$(MAKE) PROFILE=yes all
-	@rm -f gmon.out profile_vectorized.txt profile_oop.txt
+	@rm -f gmon.out profile_original.txt profile_v2.txt profile.txt
+	@echo "Profiling original mode..."
+	@./ant_simu.exe
+	@gprof ./ant_simu.exe gmon.out > profile_original.txt
 	@echo "Profiling vectorized mode..."
-	@./ant_simu.exe --benchmark
-	@gprof ./ant_simu.exe gmon.out > profile_vectorized.txt
-	@echo "Profiling oop mode..."
-	@./ant_simu.exe --benchmark --oop
-	@gprof ./ant_simu.exe gmon.out > profile_oop.txt
-	@echo "Reports: profile_vectorized.txt, profile_oop.txt"
+	@rm -f gmon.out
+	@./ant_simu_v2.exe
+	@gprof ./ant_simu_v2.exe gmon.out > profile_v2.txt
+	@cat profile_original.txt profile_v2.txt > profile.txt
 
 help:
 	@echo "Available targets : "
