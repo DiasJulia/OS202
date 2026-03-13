@@ -11,7 +11,7 @@
 #include <chrono>
 #include <mpi.h>
 #include <memory>
-#include <algorithm> // Necessário para std::copy
+#include <algorithm> 
 
 void advance_time( const fractal_land& land, pheronome& phen,
                               const position_t& pos_nest, const position_t& pos_food,
@@ -94,15 +94,12 @@ void sync_pheromones( pheronome& phen, MPI_Comm comm,
     int total_size = phen.map_data_count();
     std::vector<double> global_pheromones(total_size);
 
-    // CORREÇÃO: O MPI_Allreduce com MPI_MAX resolve a sincronização perfeitamente 
-    // sem diluir as trilhas (como a média fazia) e economiza linhas de código.
     MPI_Allreduce(phen.map_data(), global_pheromones.data(), total_size, MPI_DOUBLE, MPI_MAX, comm);
 
-    // Atualiza o mapa local com os valores globais combinados
     std::copy(global_pheromones.begin(), global_pheromones.end(), phen.map_data());
     phen.restore_borders();
 
-       sync_bytes += static_cast<long long>(total_size) * 8LL * 2;
+    sync_bytes += static_cast<long long>(total_size) * 8LL * 2;
     sync_time  += clock::now() - t0;
 }
 
@@ -116,18 +113,13 @@ int main(int nargs, char* argv[])
 
     if (rank == 0)
         SDL_Init( SDL_INIT_VIDEO );
-        std::size_t seed = 2026; // Graine pour la génération aléatoire ( reproductible )
-    const int nb_ants = 5000; // Nombre de fourmis
-    const double eps = 0.8;  // Coefficient d'exploration
-    const double alpha=0.7; // Coefficient de chaos
-    //const double beta=0.9999; // Coefficient d'évaporation
-    const double beta=0.999; // Coefficient d'évaporation
-    // Location du nid
+    std::size_t seed = 2026; 
+    const int nb_ants = 5000; 
+    const double eps = 0.8;  
+    const double alpha=0.7; 
+    const double beta=0.999; 
     position_t pos_nest{256,256};
-    // Location de la nourriture
     position_t pos_food{500,500};
-    //const int i_food = 500, j_food = 500;    
-    // Génération du territoire 512 x 512 ( 2*(2^8) par direction )
     fractal_land land(8,2,1.,1024);
     double max_val = 0.0;
     double min_val = 0.0;
@@ -141,17 +133,14 @@ int main(int nargs, char* argv[])
         for ( fractal_land::dim_t j = 0; j < land.dimensions(); ++j )  {
             land(i,j) = (land(i,j)-min_val)/delta;
         }
-    // Définition du coefficient d'exploration de toutes les fourmis.
     ant::set_exploration_coef(eps);
 
-    // On va créer des fourmis un peu partout sur la carte :
     std::vector<ant> ants;
     const std::size_t ants_begin = static_cast<std::size_t>(rank) * static_cast<std::size_t>(nb_ants) / static_cast<std::size_t>(world_size);
     const std::size_t ants_end = static_cast<std::size_t>(rank + 1) * static_cast<std::size_t>(nb_ants) / static_cast<std::size_t>(world_size);
     const std::size_t local_nb_ants = ants_end - ants_begin;
     ants.reserve(local_nb_ants);
 
-    // Tableaux pour la version vectorisée
     std::vector<int> ant_pos_x, ant_pos_y;
     std::vector<ant::state> ant_states;
     std::vector<std::size_t> ant_seeds;
@@ -170,7 +159,6 @@ int main(int nargs, char* argv[])
         ants.emplace_back(position_t{ant_pos_x[local_i], ant_pos_y[local_i]}, ant_seeds[local_i]);
     }
 
-    // On crée toutes les fourmis dans la fourmilière.
     pheronome phen(land.dimensions(), pos_food, pos_nest, alpha, beta);
 
     std::unique_ptr<Window> win;
@@ -180,7 +168,6 @@ int main(int nargs, char* argv[])
         renderer = std::make_unique<Renderer>(land, phen, pos_nest, pos_food, ants);
     }
     
-    // Compteur de la quantité de nourriture apportée au nid par les fourmis
     std::size_t food_quantity_local = 0;
     std::size_t food_quantity_global = 0;
     SDL_Event event;
@@ -268,7 +255,6 @@ int main(int nargs, char* argv[])
         if (rank == 0) {
             ants.clear();
             ants.reserve(nb_ants);
-            // Reconstrói o vetor ants com todas as formigas da simulação
             for ( std::size_t i = 0; i < nb_ants; ++i ) {
                 ants.emplace_back(position_t{all_ant_x[i], all_ant_y[i]}, 0);
             }
@@ -286,7 +272,30 @@ int main(int nargs, char* argv[])
         total_iter_ms += clock::now() - iter_start;
     }
 
+    double local_compute_avg = 0.0;
+    if (it > 0) {
+        local_compute_avg = (total_advance_ms.count() - total_evaporation_ms.count() - total_update_ms.count()) / it;
+    }
+    
+    std::vector<double> all_compute_avg(world_size);
+    MPI_Gather(&local_compute_avg, 1, MPI_DOUBLE, all_compute_avg.data(), 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    int local_threads = omp_get_max_threads();
+    std::vector<int> all_threads(world_size);
+    MPI_Gather(&local_threads, 1, MPI_INT, all_threads.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     if (rank == 0 && it > 0) {
+        std::cout << "\n--- Détails par Processus (MPI Rank) ---\n";
+        std::cout << "Rank | Threads OMP | Charge (Fourmis) | Temps Calcul/iter (ms)\n";
+        std::cout << "--------------------------------------------------------------\n";
+        for(int i = 0; i < world_size; ++i) {
+            std::cout << i << "    | " 
+                      << all_threads[i] << "           | " 
+                      << counts[i] << "              | " 
+                      << all_compute_avg[i] << "\n";
+        }
+        std::cout << "--------------------------------------------------------------\n\n";
+
         const double avg_compute = total_advance_ms.count() / it
                                    - total_evaporation_ms.count() / it
                                    - total_update_ms.count() / it;
@@ -297,7 +306,6 @@ int main(int nargs, char* argv[])
         const double sync_mb_per_call = total_sync_bytes / static_cast<double>(it) / 1e6;
         std::cout << "Benchmark (ms)\n"
         << "  MPI processes:            " << world_size << "\n"
-        << "  ants/process:             " << local_nb_ants << "\n"
         << "  avg advance_time (ms):    " << (total_advance_ms.count() / it) << "\n"
         << "    avg ant compute (ms):   " << avg_compute << "\n"
         << "    avg evaporation (ms):   " << (total_evaporation_ms.count() / it) << "\n"
