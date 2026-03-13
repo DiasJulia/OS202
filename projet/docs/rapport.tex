@@ -13,6 +13,8 @@
 \usepackage{siunitx}
 \usepackage{subcaption}
 \usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \geometry{margin=2.5cm}
 
@@ -26,10 +28,10 @@
     tabsize=2
 }
 
-\title{Projet : Optimisation Par Colonie De Fourmi D'un Chemin Sur Un Paysage Fractal \\\\ \large Cours CSC\_4OS02}
+\title{Projet : Optimisation Par Colonie De Fourmi \\ \large Cours CSC\_4OS02 - Année 2026}
 
 \author{Júlia Ellen Dias Leite \\ Helena Guachalla de Andrade \\ Mateus Bastos Soares}
-\date{Mars 2026}
+\date{}
 
 \begin{document}
 
@@ -48,7 +50,7 @@ vectorisation et parallélisation du code, en nous appuyant systématiquement su
 \section{Méthodologie}
 \label{sec:method}
 
-\subsection{Environnement et Benchmark}
+\subsection{Environnement}
 
 Pour garantir une comparaison équitable entre les versions, nous utilisons un scénario fixe :
 \begin{itemize}
@@ -62,11 +64,11 @@ Pour garantir une comparaison équitable entre les versions, nous utilisons un s
     \item Source de nourriture : $(500, 500)$
 \end{itemize}
 
-Les différents profils \texttt{gprof} sont obtenus en compilant avec l'option \texttt{PROFILE=yes} et en exécutant le binaire pendant plusieurs milliers d'itérations pour lisser les variations de temps.
+Les différents profils \texttt{gprof} sont obtenus en compilant avec l'option \texttt{PROFILE=yes}. En complément, chaque version est instrumentée pour mesurer explicitement les temps moyens par itération (temps de \texttt{advance\_time}, évaporation, mise à jour des phéromones, rendu et temps total). Les comparaisons de performance entre versions sont donc faites principalement à partir de ces mesures internes normalisées par itération, plus robustes que le seul temps cumulé du \texttt{gprof}.
 
 \subsection{Instrumentalisation}
 
-Pour l'analyse de l'optimisation du code, nous mesurons séparément les temps d'exécution par itération de deux phases principales : la première est la fonction \texttt{advance\_time}, responsable du déplacement et de la mise à jour des positions des fourmis ; et la dernière est la fonction \texttt{do\_evaporation}, qui assure l'évaporation des phéromones.
+Pour l'analyse de l'optimisation du code, nous mesurons séparément les temps d'exécution par itération de la fonction \texttt{advance\_time}, de l'évaporation des phéromones, de la mise à jour de la carte de phéromones, du rendu graphique et du temps total d'une itération complète.
 
 La fonction responsable du rendu graphique (\texttt{Renderer::display}) est également mesurée, et bien qu'une grande partie du temps de calcul lui soit destinée, la parallélisation ne la prendra pas en compte.
 
@@ -74,31 +76,31 @@ La fonction responsable du rendu graphique (\texttt{Renderer::display}) est éga
 \label{sec:baseline}
 
 \subsection{Profiling Temporel (gprof)}
-Le premier profil \texttt{gprof} est obtenu sur la version originale (programmation orientée objet), avec une exécution d'environ $3\,591$ itérations. Le \emph{flat profile} de cette version donne un temps total de \textbf{32,30~s}. 
+Le premier profil \texttt{gprof} est obtenu sur la version originale (programmation orientée objet). Sur cette version, le benchmark instrumenté réalise \textbf{3\,304} itérations en \textbf{60~s}, soit un temps moyen mesuré de \textbf{18,16~ms/itération}. Le \emph{flat profile} \texttt{gprof} correspondant donne un temps total échantillonné de \textbf{17,06~s}. 
 
 \begin{table}[H]
     \centering
-    \caption{Flat profile gprof --- version originale (temps total : 32,30~s)}
+    \caption{Flat profile gprof --- version originale (temps total : 17,06~s)}
     \begin{tabular}{lrrrr}
         \toprule
         \textbf{Fonction} & \textbf{Temps (s)} & \textbf{\%} & \textbf{Appels} & \textbf{ms/appel} \\
         \midrule
-        \texttt{ant::advance} & 15{,}79 & 48{,}89 & 17\,955\,000 & $\approx 0{,}00088$ \\
-        \texttt{Renderer::display} & 11{,}33 & 35{,}08 & 3\,591 & 3{,}16 \\
-        \texttt{advance\_time} & 4{,}77 & 14{,}77 & 3\,591 & 1{,}33 \\
-        \texttt{fractal\_land::compute\_subgrid} & 0{,}02 & 0{,}06 & 87\,376 & 0{,}00 \\
-        Autre (init, main, allocations, ...) & 0{,}39 & 1{,}20 & -- & -- \\
+        \texttt{ant::advance} & 9{,}34 & 54{,}75 & 16\,520\,000 & $\approx 0{,}00057$ \\
+        \texttt{Renderer::display} & 4{,}89 & 28{,}66 & 3\,304 & 1{,}48 \\
+        \texttt{advance\_time} & 2{,}58 & 15{,}12 & 3\,304 & 0{,}78 \\
+        \texttt{fractal\_land::compute\_subgrid} & 0{,}04 & 0{,}23 & 87\,376 & 0{,}00 \\
+        Autre (init, main, allocations, ...) & 0{,}21 & 1{,}24 & -- & -- \\
         \midrule
-        \textbf{Total} & \textbf{32{,}30} & \textbf{100\,\%} & & \\
+        \textbf{Total} & \textbf{17{,}06} & \textbf{100\,\%} & & \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-Le nombre total d'appels à \texttt{ant::advance} est cohérent avec une moyenne de $5\,000$ appels par itération (17,955M appels / 3,591 itérations). 
+    Le nombre total d'appels à \texttt{ant::advance} est cohérent avec une moyenne de $5\,000$ appels par itération (16,52M appels / 3\,304 itérations). 
 
 \subsection{Décomposition temporelle par itération}
 
-En normalisant par le nombre d'itérations, on obtient un temps moyen d'environ 9,0~ms/itération (32,30~s / 3\,591 itérations). La contribution des principales phases s'est donnée principalement par l'avancement des fourmis (\texttt{ant::advance}) : 48,9\,\% --- 4,4~ms/itération. Ensuite, par le rendu graphique (\texttt{Renderer::display}) : 35,1\,\% --- 3,2~ms/itération. À la fin, par l'évaporation et mise à jour de phéromones (\texttt{advance\_time}) : 14,8\,\% --- 1,3~ms/itération, tandis que la génération du terrain fractal (\texttt{fractal\_land}) est négligeable puisqu'elle contribue à moins de 0,2\,\%. 
+Les mesures internes donnent pour la version originale : \texttt{advance\_time} $= 3{,}776$~ms, évaporation $= 0{,}707$~ms, mise à jour des phéromones $= 0{,}016$~ms, rendu $= 11{,}988$~ms et temps total $= 18{,}161$~ms par itération. Le rendu graphique domine donc nettement le temps total mesuré, avec environ les deux tiers du temps d'une itération complète. Le profil \texttt{gprof} confirme cependant que, à l'intérieur du noyau de simulation, la quasi-totalité du coût de \texttt{advance\_time} provient des appels à \texttt{ant::advance}, tandis que la génération du terrain fractal reste négligeable. 
 
 On constate également que la quasi-totalité du temps d'\texttt{advance\_time} est passée dans les appels individuels à \texttt{ant::advance}, ce qui justifie de cibler en priorité cette fonction pour la vectorisation.
 
@@ -112,50 +114,49 @@ Au lieu de maintenir un objet par fourmi, nous utilisons des vecteurs :
     \item \texttt{pos\_x[], pos\_y[]} : positions
     \item \texttt{state[]} : états (chargée/non chargée)
     \item \texttt{seed[]} : graines PRNG
-    \item \texttt{energy[]} : énergie de mouvement
 \end{itemize}
 Cette transformation permet d'améliorer la localité mémoire et facilite l'utilisation de SIMD par le compilateur sur les boucles qui parcourent les fourmis. 
 
 \subsection{Profiling de la version vectorisée}
 
-La version vectorisée (\textit{benchmark}) est profilée avec un temps total de \textbf{17,73~s} pour \textbf{1\,792} itérations, soit \textbf{9,90~ms/itération}. Le tableau suivant rassemble les informations du profil.
+La version vectorisée est profilée avec un temps total \texttt{gprof} de \textbf{21,84~s}. Sur l'exécution instrumentée, elle réalise \textbf{4\,800} itérations en \textbf{120~s}, soit \textbf{25,01~ms/itération}. Le tableau suivant rassemble les informations du profil.
 
 \begin{table}[H]
     \centering
-    \caption{Flat profile gprof --- version vectorisée (temps total : 17,73~s)}
+    \caption{Flat profile gprof --- version vectorisée (temps total : 21,84~s)}
     \begin{tabular}{lrrrr}
         \toprule
         \textbf{Fonction} & \textbf{Temps (s)} & \textbf{\%} & \textbf{Appels} & \textbf{ms/appel} \\
         \midrule
-        \texttt{advance\_time\_vectorized} & 11{,}39 & 64{,}24 & 1\,792 & 6{,}36 \\
-        \texttt{Renderer::display} & 5{,}99 & 33{,}78 & 1\,792 & 3{,}34 \\
-        \texttt{fractal\_land::compute\_subgrid} & 0{,}03 & 0{,}17 & 87\,376 & 0{,}00 \\
-        Autre (init, main, allocations, ...) & 0{,}32 & 1{,}81 & -- & -- \\
+        \texttt{advance\_time} & 14{,}31 & 65{,}52 & 4\,800 & 2{,}98 \\
+        \texttt{Renderer::display} & 6{,}88 & 31{,}50 & 4\,800 & 1{,}43 \\
+        \texttt{fractal\_land::compute\_subgrid} & 0{,}03 & 0{,}14 & 87\,376 & 0{,}00 \\
+        Autre (init, main, allocations, ...) & 0{,}62 & 2{,}84 & -- & -- \\
         \midrule
-        \textbf{Total} & \textbf{17{,}73} & \textbf{100\,\%} & & \\
+        \textbf{Total} & \textbf{21{,}84} & \textbf{100\,\%} & & \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-On observe que l'appel élémentaire \texttt{ant::advance} ne figure plus dans le profil, car sa logique est désormais intégrée dans le noyau vectorisé \texttt{advance\_time\_vectorized} qui traite toutes les fourmis via des tableaux contigus.
+    On observe que l'appel élémentaire \texttt{ant::advance} ne figure plus dans le profil, car sa logique est désormais intégrée dans le noyau vectorisé \texttt{advance\_time}, qui traite toutes les fourmis via des tableaux contigus.
 
 \subsection{Analyse de Performance}
 
 En comparant les temps par itération entre la version orientée objet et la version vectorisée, on obtient :
 \begin{itemize}
-    \item Baseline : \(\approx 9,0~\text{ms/itération}\).
-    \item Version vectorisée : \(\approx 9,90~\text{ms/itération}\).
+    \item Baseline : \(18{,}16~\text{ms/itération}\).
+    \item Version vectorisée : \(25{,}01~\text{ms/itération}\).
 \end{itemize}
 
-Dans cette configuration de benchmark, le temps moyen par itération de la version vectorisée est donc légèrement \emph{plus élevé} (environ 1,1~ms de plus), ce qui correspond à un speedup global \(S \approx 0{,}91\) (légère régression). En pratique, cela signifie qu'une partie du temps gagné sur la logique de chaque fourmi est compensée par le coût de gestion des nouveaux tableaux et par le fait que le rendu reste une part importante du temps total.
+Dans cette configuration de benchmark, le temps moyen par itération de la version vectorisée est donc sensiblement \emph{plus élevé} que celui de la version orientée objet, ce qui correspond à un speedup global \(S \approx 18{,}16 / 25{,}01 \approx 0{,}73\). Les mesures instrumentées montrent en particulier que le rendu graphique reste dominant (environ \(20{,}08\)~ms sur \(25{,}01\)~ms), ce qui masque une partie du gain obtenu sur le noyau de calcul lui-même.
 
-Le noyau de simulation est désormais regroupé dans \texttt{advance\_time\_vectorized}, qui concentre environ 64\,\% du temps total, confirmant ainsi la pertinence de le cibler avec des optimisations OpenMP et SIMD explicites.
+Le noyau de simulation est désormais regroupé dans \texttt{advance\_time}, qui concentre environ 66\,\% du temps \texttt{gprof}, confirmant ainsi la pertinence de le cibler avec des optimisations OpenMP ultérieures.
 
 \section{Parallélisation OpenMP}
 \label{sec:openmp}
 
 \subsection{Stratégie de Parallélisation}
-Les boucles parallélisées dans le noyau vectorisé sont les boucles externes sur les fourmis et sur les cellules du terrain, en s'appuyant sur \texttt{\#pragma omp parallel for} :
+La version OpenMP parallèle principalement la boucle externe sur les fourmis dans le noyau vectorisé, en s'appuyant sur \texttt{\#pragma omp parallel for} :
 
 \begin{lstlisting}
 // Boucle sur les fourmis
@@ -163,47 +164,51 @@ Les boucles parallélisées dans le noyau vectorisé sont les boucles externes s
 for (int i = 0; i < num_ants; ++i) {
     // mise a jour position, etat...
 }
-
-// Boucle sur la grille pour l'evaporation des pheromones
-#pragma omp parallel for collapse(2)
-for (int x = 0; x < width; ++x) {
-    for (int y = 0; y < height; ++y) {
-        // evaporation et diffusion locale
-    }
-}
 \end{lstlisting}
 
-Ces boucles sont naturellement parallélisables car chaque fourmi et chaque cellule sont mises à jour de manière indépendante, sous réserve de gérer correctement les accumulations de phéromones (réductions) et l'accès concurrent à la grille.
+Cette parallélisation est naturelle car chaque fourmi est traitée indépendamment au sein de la boucle principale. En revanche, l'évaporation et la mise à jour globale des phéromones restent séquentielles dans cette version, ce qui limite mécaniquement le speedup global accessible.
 
 \subsection{Accélération en fonction du nombre de threads}
 
-Pour quantifier l'impact d'OpenMP, nous avons mesuré le temps moyen par itération avec 2, 4 et 8 threads, en comparant au temps de la version vectorisée séquentielle (1 thread). Le temps de référence $T_1$ est d'environ $9{,}90~\text{ms/itération}$.
+Pour quantifier l'impact d'OpenMP, nous avons mesuré le temps moyen par itération avec 2, 4 et 8 threads, en comparant au temps de la version vectorisée séquentielle (1 thread). Le temps de référence est ici celui de la version vectorisée, soit $T_1 = 25{,}01~\text{ms/itération}$. Nous reportons également le temps de \texttt{advance\_time}, plus représentatif du noyau effectivement parallélisé.
 
 \begin{table}[H]
     \centering
-    \caption{Speedup OpenMP : $S_p = T_1 / T_p$}
+    \caption{Résultats OpenMP à partir du benchmark instrumenté}
     \begin{tabular}{lcccc}
         \toprule
         \textbf{Threads} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} \\
         \midrule
-        \textbf{Temps (ms/it)} 
-            & 9{,}90 
-            & 6{,}06 
-            & 4{,}91 
-            & 6{,}39 \\
-        \textbf{Speedup $S_p$} 
-            & 1{,}00 
-            & 1{,}64 
-            & 2{,}02 
-            & 1{,}55 \\
+        \textbf{Advance\_time (ms)}
+            & 3{,}04
+            & 2{,}72
+            & 2{,}32
+            & 1{,}33 \\
+        \textbf{Itération (ms)}
+            & 25{,}01
+            & 25{,}12
+            & 25{,}20
+            & 20{,}44 \\
+        \textbf{Speedup noyau}
+            & 1{,}00
+            & 1{,}12
+            & 1{,}31
+            & 2{,}28 \\
+        \textbf{Speedup global}
+            & 1{,}00
+            & 1{,}00
+            & 0{,}99
+            & 1{,}22 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\section{Parallélisation MPI}
+Les profils \texttt{gprof} des versions OpenMP confirment que \texttt{advance\_time} reste un poste important du calcul, mais les mesures instrumentées montrent que le gain sur ce noyau est partiellement masqué par le coût du rendu graphique. Entre 1 et 8 threads, le temps de \texttt{advance\_time} est divisé par environ \(2{,}28\), tandis que le temps total d'itération ne s'améliore que d'un facteur \(1{,}22\). Cela indique que, dans cette configuration, le rendu graphique devient un facteur limitant majeur pour l'accélération globale.
+
+\section{Stratégie de Parallélisation 1}
 \label{sec:mpi}
 
-\subsection{Implémentation hybride MPI + OpenMP}
+\subsection{Implémentation MPI hybride}
 
 La version implemente une stratégie hybride combinant MPI et OpenMP. Chaque processus MPI maintient une copie complète de l'environnement, mais ne simule qu'un sous-ensemble des fourmis. À l'intérieur de chaque processus, la boucle \texttt{advance\_time} reste parallélisée avec OpenMP, de sorte que le parallélisme est organisé sur deux niveaux : MPI répartit les fourmis entre processus, et OpenMP répartit les fourmis locales entre threads.
 
@@ -224,55 +229,145 @@ Le code de la version hybride a également été instrumenté pour fournir des m
 \subsection{Résultats expérimentaux MPI}
 
 Nous avons ensuite évalué la version MPI (stratégie de réplication du domaine). Les profils gprof montrent que le temps total est principalement réparti entre la fonction \texttt{advance\_time}, la synchronisation des phéromones (\texttt{sync\_pheromones}) et, lorsque le rendu est activé, \texttt{Renderer::display}.
+
 \begin{table}[H]
-    \centering
-    \caption{Stratégie 1 (réplication) : temps et speedup en fonction du nombre de processus}
-    \begin{tabular}{lccccc}
-        \toprule
-        \textbf{Processus} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} \\
-        \midrule
-        \textbf{Temps total (s)} 
-            & -- 
-            & 10{,}07 
-            & 15{,}69 
-            & 5{,}80  \\
-        \textbf{Temps (ms/it)} 
-            & -- 
-            & 5{,}63 
-            & 8{,}84 
-            & 3{,}29  \\
-        \textbf{Speedup $S_p$} 
-            & 1{,}0 
-            & -- 
-            & -- 
-            & --  \\
-        \textbf{Commun. (\%)} 
-            & 0 
-            & $\approx 23$ 
-            & 42 
-            & $\approx 30$ \\
-        \bottomrule
-    \end{tabular}
+\centering
+\caption{Résultats MPI+OpenMP (OMP=1) : temps, speedup et ratio compute/comm}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Processus} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{8} \\
+\midrule
+\textbf{Temps (ms/it)}        & 29,10 & 31,71 & 35,55 & 43,68 \\
+\textbf{Speedup $S_p$}        & 1,00  & 0,92  & 0,82  & 0,67  \\
+\textbf{Comm/Total (\% est.)} & 5     & 21    & 36    & 54    \\
+\textbf{Total itérations}     & 4125  & 3779  & 3371  & 2741  \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Les mesures montrent que, pour 4 threads, le coût de synchronisation des phéromones représente déjà plus de 40\,\% du temps total, ce qui limite fortement le speedup potentiel de la stratégie de réplication du domaine. À 8 threads, le temps total diminue (environ $3{,}29~\text{ms/itération}$), mais la part relative de la communication reste significative, et la scalabilité reste inférieure à ce qu'on pourrait attendre d'un noyau largement parallélisable.
 
-\subsection{Stratégie 2 : Décomposition de Domaine}
+\subsection{Analyse de la Parallélisation}
+\label{sec:resultats_bench}
+
+Afin d'évaluer l'efficacité des différentes stratégies de parallélisation (OpenMP en mémoire partagée et MPI avec réplication du domaine), nous avons extrait les métriques clés des exécutions. Le tableau ci-dessous résume le temps de calcul pur des fourmis, le temps de synchronisation de la carte des phéromones et le temps total par itération. Les données de rendu graphique sont exclues de l'analyse du speedup car l'affichage est limité au processus maître (Rang 0).
+
+\begin{table}[H]
+    \centering
+    \caption{Synthèse des performances (OpenMP / MPI) en millisecondes par itération}
+    \begin{tabular}{ccS[table-format=1.2]S[table-format=2.2]S[table-format=2.2]S[table-format=1.2]}
+        \toprule
+        \textbf{MPI} & \textbf{OMP} & {\textbf{Calcul (ms)}} & {\textbf{Sync. (ms)}} & {\textbf{Itération (ms)}} & {\textbf{Ratio Cal/Comm}} \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Scalabilité OpenMP (Mémoire Partagée)}} \\
+        \midrule
+        1 & 2 & 3.07 & 1.52  & 29.22 & 2.01 \\
+        1 & 4 & 2.99 & 1.56  & 29.33 & 1.91 \\
+        1 & 8 & 3.05 & 1.64  & 29.63 & 1.85 \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Scalabilité MPI (Réplication du Domaine - Première façon)}} \\
+        \midrule
+        2 & 1 & 1.25 & 6.67  & 31.32 & 0.18 \\
+        4 & 1 & 1.29 & 12.27 & 35.56 & 0.10 \\
+        8 & 1 & 0.95 & 25.01 & 44.96 & 0.03 \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Exécution Hybride}} \\
+        \midrule
+        2 & 8 & 1.45 & 6.37  & 31.38 & 0.22 \\
+        4 & 8 & 1.56 & 13.18 & 35.99 & 0.11 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+L'analyse de ces résultats met en évidence la limitation structurelle de la « Première façon » décrite dans le sujet :
+
 \begin{itemize}
-    \item Chaque processus maintient un sous-domaine rectangulaire de la carte.
-    \item Gestion locale des fourmis (migration des fourmis entre sous-domaines).
-    \item Échange de bordures de phéromones entre processus voisins.
-    \item Coût de communication réduit (seulement les halos) mais équilibre de charge potentiellement mauvais si la distribution de fourmis est très inhomogène.
+    \item \textbf{Stagnation sous OpenMP (MPI=1)} : L'augmentation des threads de 2 à 8 n'apporte pas de gain sur le temps de calcul des fourmis ($\approx 3{,}0$~ms). Cela indique une saturation précoce de la bande passante mémoire ou un surcoût de gestion des threads (\textit{overhead}) qui efface les bénéfices de la parallélisation locale.
+    \item \textbf{Goulot d'étranglement MPI (OMP=1)} : La répartition des fourmis entre plusieurs processus remplit son rôle initial : le temps de calcul individuel chute de $3{,}05$~ms à $0{,}95$~ms avec 8 processus. Cependant, le temps de synchronisation des phéromones explose, passant de $1{,}64$~ms à $25{,}01$~ms. 
 \end{itemize}
 
-\textbf{Pseudo-algorithme :}
+En conséquence, le ratio Calcul/Communication s'effondre brutalement à $0{,}03$. La communication globale et répétitive de l'intégralité de la grille à chaque itération annihile complètement les gains obtenus sur le calcul, augmentant paradoxalement le temps total d'exécution au lieu de le réduire.
+
+\subsection{Calcul de l'Accélération (Speedup)}
+\label{subsec:speedup}
+
+Afin d'isoler l'impact du surcoût de communication, nous calculons deux accélérations distinctes : l'accélération sur le noyau de calcul pur ($S_{\text{calcul}}$) et l'accélération globale de l'itération ($S_{\text{global}}$). En l'absence d'une exécution purement séquentielle dans cette série de mesures, nous prenons la configuration \texttt{MPI=1, OMP=2} comme référence de base ($S=1{,}00$).
+
+\begin{table}[H]
+    \centering
+    \caption{Évolution de l'accélération (Speedup) en fonction de la configuration}
+    \begin{tabular}{ccS[table-format=1.2]S[table-format=1.2]S[table-format=2.2]S[table-format=1.2]}
+        \toprule
+        \textbf{MPI} & \textbf{OMP} & {\textbf{Calcul (ms)}} & {\textbf{$S_{\text{calcul}}$}} & {\textbf{Itération (ms)}} & {\textbf{$S_{\text{global}}$}} \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Référence et OpenMP}} \\
+        \midrule
+        1 & 2 & 3.07 & 1.00 & 29.22 & 1.00 \\
+        1 & 4 & 2.99 & 1.03 & 29.33 & 1.00 \\
+        1 & 8 & 3.05 & 1.01 & 29.63 & 0.99 \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Stratégie MPI (Réplication du Domaine)}} \\
+        \midrule
+        2 & 1 & 1.25 & 2.46 & 31.32 & 0.93 \\
+        4 & 1 & 1.29 & 2.38 & 35.56 & 0.82 \\
+        8 & 1 & 0.95 & 3.23 & 44.96 & 0.65 \\
+        \midrule
+        \multicolumn{6}{c}{\textit{Exécution Hybride}} \\
+        \midrule
+        2 & 8 & 1.45 & 2.12 & 31.38 & 0.93 \\
+        4 & 8 & 1.56 & 1.97 & 35.99 & 0.81 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Ce tableau illustre le paradoxe de cette strategie : la distribution du calcul des fourmis est efficace. Par exemple, avec 8 processus MPI, le temps de calcul des fourmis est divisé par plus de trois ($S_{\text{calcul}} = 3{,}23$). 
+
+Cependant, le speedup global ($S_{\text{global}}$) chute à $0{,}65$. Cela signifie que la simulation est en réalité plus lente avec 8 processus qu'avec un seul. L'accélération obtenue sur la charge de travail (les fourmis) est entièrement effacée par la complexité de l'opération \texttt{MPI\_Allreduce} qui doit répliquer une carte complète sur chaque processus à chaque itération.
+
+\section{Stratégie de Parallélisation 2}
+
+\subsection{Principe général}
+
+La seconde approche de parallélisation repose sur une décompostion de domaine. Contrairement à la première méthode où chaque processus possède une copie complète de l'environnement, ici la carte est divisée en sous-domaines adjacents, chacun étant attribué à un processus distinct. Chaque processus gère alors :
+
+\begin{itemize}
+    \item La portion de carte qui lui est assignée (valeurs du terrain, types de cellules)
+    \item Les tableaux de phéromones \(V_1\) et \(V_2\) pour son sous-domaine
+    \item Les fourmis présentes sur son territoire
+\end{itemize}
+
+Chaque sous-domaine est étendu d'une couche de cellules fantômes (ou \textit{ghost cells}) sur ses bordures. Ces cellules supplémentaires permettent de stocker une copie des valeurs des cellules voisines appartenant aux processus adjacents, nécessaire pour les calculs locaux qui requièrent la connaissance du voisinage.
+
+\subsection{Gestion des fourmis}
+
+Chaque processus maintient localement un tableau des fourmis présentes sur son sous-domaine, contenant pour chacune : sa position, son état (chargée/non chargée), et son identifiant unique ; et un compteur local d'unités de nourriture collectées.
+
+La répartition initiale des fourmis dépend du mode d'initialisation choisi (toutes dans la fourmilière ou uniformément sur la grille). La fourmilière étant localisée sur un seul processus, si l'initialisation est centralisée, ce processus démarre avec l'ensemble des fourmis.
+
+Lorsqu'une fourmi franchit la frontière d'un sous-domaine, elle doit être transférée au processus voisin. La procédure de migration s'effectuerait comme suit :
+
 \begin{enumerate}
-    \item Partitionner la carte en sous-domaines ($p = \sqrt{n\_\text{procs}}$).
-    \item Échanger les fourmis migrantes sur les bordures.
-    \item Mettre à jour la couche de bordure depuis les voisins (phéromones).
-    \item Faire évoluer les fourmis localement (boucles vectorisées).
-    \item Mettre à jour phéromones localement puis synchroniser les halos.
+    \item Après le déplacement des fourmis, chaque processus identifie celles dont la nouvelle position se trouve hors de son domaine
+    \item Ces fourmis sont regroupées par direction de sortie (nord, sud, est, ouest)
+    \item Des communications point-à-point sont effectuées avec les processus voisins pour échanger les fourmis sortantes contre les fourmis entrantes
+    \item Chaque processus intègre les fourmis reçues dans sa structure de données locale
 \end{enumerate}
+
+Cette migration garantit que chaque fourmi est toujours gérée par le processus responsable de la cellule sur laquelle elle se trouve.
+
+\subsection{Synchronisation des cellules fantômes}
+
+Pour calculer correctement la mise à jour des phéromones sur une cellule \(s\), une fourmi a besoin de connaître les valeurs \(V_1\) et \(V_2\) des quatre cellules voisines. Pour les cellules situées en bordure de sous-domaine, ces voisins appartiennent au processus adjacent. Un échange de bordures est donc nécessaire :
+
+\begin{enumerate}
+    \item Après chaque mise à jour locale des phéromones, chaque processus envoie les valeurs de ses cellules de bordure aux processus voisins correspondants
+    \item Simultanément, il reçoit les valeurs des bordures de ses voisins et met à jour ses cellules fantômes
+    \item Ces communications peuvent être effectuées de manière non-bloquante pour recouvrir le temps de communication par du calcul
+\end{enumerate}
+
+\subsection{Évaporation des phéromones}
+
+L'évaporation des phéromones est une opération purement locale : chaque processus applique indépendamment le coefficient \(\beta\) à l'ensemble des cellules de son sous-domaine. 
 
 \section{Analyse des Goulots d'Étranglement}
 \label{sec:bottlenecks}
@@ -280,17 +375,22 @@ Les mesures montrent que, pour 4 threads, le coût de synchronisation des phéro
 Les profils successifs permettent d'identifier plusieurs goulots d'étranglement structurels :
 
 \begin{itemize}
-    \item[$\circ$] \textbf{Mémoire}: malgré le passage en SoA, les accès à la grille de phéromones restent non séquentiels et entraînent des défauts de cache, particulièrement pour les trajectoires de fourmis très dispersées.
-    \item[$\circ$] \textbf{Rendu graphique}: \texttt{Renderer::display} représente environ 33\,\% du temps dans la version vectorisée et plus de 35\,\% dans la baseline, et n'est pas facilement parallélisable au-delà de quelques optimisations internes (double-buffering, batching).
-    \item[$\circ$] \textbf{Overhead de fenêtre}: lors de petites exécutions, la création de la fenêtre peut dominer le profil (jusqu'à 60--90\,\% du temps sur certains runs courts), ce qui impose d'utiliser des runs longs pour des mesures représentatives.
-    \item[$\circ$] \textbf{Communication MPI}: dans les stratégies distribuées, la synchronisation des phéromones et l'échange de fourmis peuvent limiter le speedup si la fréquence de communication est trop élevée.
-    \item[$\circ$] \textbf{Équilibrage de charge}: la distribution des fourmis entre processus MPI est statique et uniforme en nombre de fourmis, mais le coût réel par fourmi dépend du terrain et des trajectoires suivies. Il peut donc subsister des déséquilibres en temps de calcul d'un rang à l'autre. Le même phénomène existe au niveau OpenMP, où la répartition par défaut du \texttt{parallel for} ne tient pas compte de cette variabilité de charge.
+    \item \textbf{Mémoire}: malgré le passage en SoA, les accès à la grille de phéromones restent non séquentiels et entraînent des défauts de cache, particulièrement pour les trajectoires de fourmis très dispersées.
+    \item \textbf{Rendu graphique}: \texttt{Renderer::display} représente environ 33\,\% du temps dans la version vectorisée et plus de 35\,\% dans la baseline, et n'est pas facilement parallélisable au-delà de quelques optimisations internes (double-buffering, batching).
+    \item \textbf{Overhead de fenêtre}: lors de petites exécutions, la création de la fenêtre peut dominer le profil (jusqu'à 60--90\,\% du temps sur certains runs courts), ce qui impose d'utiliser des runs longs pour des mesures représentatives.
+    \item \textbf{Communication MPI}: dans les stratégies distribuées, la synchronisation des phéromones et l'échange de fourmis peuvent limiter le speedup si la fréquence de communication est trop élevée.
+    \item \textbf{Équilibrage de charge}: la distribution des fourmis entre processus MPI est statique et uniforme en nombre de fourmis, mais le coût réel par fourmi dépend du terrain et des trajectoires suivies. Il peut donc subsister des déséquilibres en temps de calcul d'un rang à l'autre. Le même phénomène existe au niveau OpenMP, où la répartition par défaut du \texttt{parallel for} ne tient pas compte de cette variabilité de charge.
 
 \end{itemize}
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-Les profils \texttt{gprof} montrent que la version orientée objet initiale est dominée par \texttt{ant::advance} (environ 49\,\%) et par le rendu (35\,\%), ce qui a motivé la restructuration en Structure of Arrays. La version vectorisée regroupe désormais la logique dans \texttt{advance\_time\_vectorized} (environ 64\,\% du temps) et simplifie l'application d'OpenMP et de SIMD, même si, dans la configuration mesurée, le temps par itération reste légèrement supérieur à la baseline (speedup global $S \approx 0{,}91$).
+Ce projet a permis d'explorer l'optimisation d'une simulation de colonie de fourmis à travers différentes stratégies logicielles et matérielles. Guidée par le profilage des performances, la refonte de la structure de données en \textit{Structure of Arrays}, combinée à une parallélisation en mémoire partagée via OpenMP, a rempli son objectif sur le noyau de calcul.
+
+La première stratégie MPI, fondée sur la réplication complète de l'environnement sur chaque processus, est simple à mettre en œuvre et permet de répartir efficacement le calcul des fourmis. En revanche, elle devient rapidement limitée par la synchronisation globale de la carte des phéromones, dont le coût croît avec le nombre de processus. À l'inverse, la seconde stratégie, basée sur une décomposition spatiale du domaine, est plus complexe à programmer mais paraît plus adaptée à une montée en charge réelle, car elle remplace une communication globale coûteuse par des échanges locaux entre voisins.
+
+Enfin, les performances restent fortement dépendantes de la machine utilisée : nombre de cœurs, caches, bande passante mémoire, coût des synchronisations OpenMP et efficacité des communications MPI. Sur une machine de bureau, ces contraintes matérielles peuvent rapidement limiter les gains attendus. En pratique, la piste la plus prometteuse pour aller plus loin serait donc de réduire l'impact du rendu lors des benchmarks et d'explorer la seconde stratégie de parallélisation, plus scalable à grande échelle.
+
 
 \end{document}
